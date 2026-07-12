@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NearAppoint — The appointment book for Pakistani salons</title>
+<meta name="description" content="Stop losing money to double-bookings, no-shows and a WhatsApp inbox you can't keep up with. NearAppoint is the appointment book built for salons in Lahore. Find. Book. Arrive.">
+
+<meta property="og:title" content="NearAppoint — The appointment book for Pakistani salons">
+<meta property="og:description" content="Replace the register. Run your whole day from one screen. Launching in Lahore.">
+<meta property="og:url" content="https://www.nearappoint.com">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#F97316">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<style>
+/* ===== Hero ============================================================== */
+.hero { padding: 62px 0 84px; position: relative; overflow: hidden; }
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -280px; right: -220px;
+  width: 720px; height: 720px;
+  background: radial-gradient(circle, rgba(249,115,22,.10), transparent 62%);
+  pointer-events: none;
+  z-index: 0;
+}
+.hero .wrap { position: relative; z-index: 1; }
+.hero__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 62px;
+  align-items: center;
+}
+.hero__copy > * + * { margin-top: 22px; }
+.hero h1 { max-width: 12ch; }
+.hero h1 .accent { color: var(--orange); }
+.hero__actions { display: flex; gap: 12px; flex-wrap: wrap; padding-top: 6px; }
+.hero__note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: .9rem;
+  color: var(--ink-muted);
+}
+.hero__note strong { color: var(--navy); font-weight: 600; }
+.pulse {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--free);
+  flex: 0 0 auto;
+  box-shadow: 0 0 0 0 rgba(14,164,122,.6);
+  animation: pulse 2.4s infinite;
+}
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(14,164,122,.55); }
+  70%  { box-shadow: 0 0 0 8px rgba(14,164,122,0); }
+  100% { box-shadow: 0 0 0 0 rgba(14,164,122,0); }
+}
+
+/* ===== SIGNATURE: the live Today card ==================================== */
+.today {
+  background: var(--white);
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.today__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--sand);
+  background: var(--cream);
+}
+.today__title { display: flex; align-items: baseline; gap: 10px; }
+.today__title strong {
+  font-family: var(--display);
+  font-size: 1.06rem;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: -.01em;
+}
+.today__date { font-family: var(--mono); font-size: .76rem; color: var(--ink-faint); }
+.today__clock {
+  font-family: var(--mono);
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--orange);
+  font-variant-numeric: tabular-nums;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.today__cols {
+  display: grid;
+  grid-template-columns: 52px 1fr 1fr;
+  border-bottom: 1px solid var(--sand);
+  background: var(--white);
+}
+.today__col {
+  padding: 11px 10px;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-align: center;
+  border-left: 1px solid var(--sand);
+}
+.today__col:first-child { border-left: 0; }
+
+.today__grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 52px 1fr 1fr;
+  min-height: 322px;
+}
+.today__times { border-right: 1px solid var(--sand); }
+.today__time {
+  height: 46px;
+  padding: 4px 8px 0 0;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: .68rem;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.today__lane { position: relative; border-left: 1px solid var(--sand); }
+.today__lane::before {
+  /* hour rules — structure, not decoration: these are the 30-min slot lines */
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0, transparent 45px,
+    var(--sand) 45px, var(--sand) 46px
+  );
+  pointer-events: none;
+}
+
+.appt {
+  position: absolute;
+  left: 6px; right: 6px;
+  border-radius: 9px;
+  padding: 7px 9px;
+  overflow: hidden;
+  border-left: 3px solid var(--orange);
+  background: var(--orange-tint);
+  animation: appt-in .4s cubic-bezier(.2,.9,.3,1.2) backwards;
+}
+@keyframes appt-in {
+  from { opacity: 0; transform: translateY(6px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+.appt__who {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.appt__what {
+  font-size: .71rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.appt--done { border-left-color: var(--ink-faint); background: var(--busy-tint); opacity: .72; }
+.appt--walkin { border-left-color: var(--free); background: var(--free-tint); }
+.appt__tag {
+  display: inline-block;
+  margin-top: 3px;
+  font-family: var(--mono);
+  font-size: .58rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--free);
+}
+
+/* the now-line: the single highest-value pixel on a salon's screen */
+.nowline {
+  position: absolute;
+  left: 52px; right: 0;
+  height: 0;
+  border-top: 2px solid var(--orange);
+  z-index: 3;
+  pointer-events: none;
+  transition: top .9s cubic-bezier(.4,0,.2,1);
+}
+.nowline::before {
+  content: '';
+  position: absolute;
+  left: -5px; top: -5px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+}
+
+.today__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 18px;
+  background: var(--cream);
+  border-top: 1px solid var(--sand);
+  font-size: .82rem;
+  color: var(--ink-muted);
+}
+.today__foot b { color: var(--navy); font-weight: 600; }
+.today__walkin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border-radius: 8px;
+  background: var(--navy);
+  color: var(--white);
+  font-size: .8rem;
+  font-weight: 600;
+  border: 0;
+  cursor: pointer;
+  transition: background .16s ease;
+}
+.today__walkin:hover { background: var(--navy-soft); }
+.today__walkin[disabled] { opacity: .5; cursor: default; }
+
+@media (max-width: 960px) {
+  .hero__grid { grid-template-columns: 1fr; gap: 44px; }
+  .hero h1 { max-width: 100%; }
+  .hero { padding: 44px 0 60px; }
+}
+
+/* ===== Problem =========================================================== */
+.problem { padding: 84px 0; background: var(--white); border-top: 1px solid var(--sand); border-bottom: 1px solid var(--sand); }
+.problem__head { max-width: 640px; margin-bottom: 48px; }
+.problem__head h2 { margin: 16px 0 16px; }
+.problem__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.pcard {
+  padding: 28px 26px 30px;
+  border: 1px solid var(--sand);
+  border-radius: var(--radius);
+  background: var(--cream);
+}
+.pcard__quote {
+  font-family: var(--display);
+  font-size: 1.16rem;
+  font-weight: 600;
+  line-height: 1.38;
+  letter-spacing: -.012em;
+  color: var(--navy);
+  margin-bottom: 14px;
+}
+.pcard__quote::before { content: '“'; color: var(--orange); }
+.pcard__quote::after  { content: '”'; color: var(--orange); }
+.pcard p { font-size: .95rem; color: var(--ink-muted); line-height: 1.6; }
+@media (max-width: 880px) { .problem__grid { grid-template-columns: 1fr; } }
+
+/* ===== Features ========================================================== */
+.features { padding: 90px 0; }
+.features__head { max-width: 640px; margin-bottom: 52px; }
+.features__head h2 { margin: 16px 0 16px; }
+.features__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.fcard {
+  display: flex;
+  gap: 18px;
+  padding: 26px;
+  background: var(--white);
+  border: 1px solid var(--sand);
+  border-radius: var(--radius);
+  transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.fcard:hover { border-color: var(--orange); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.fcard__icon {
+  flex: 0 0 auto;
+  width: 42px; height: 42px;
+  display: grid; place-items: center;
+  border-radius: 11px;
+  background: var(--orange-tint);
+  color: var(--orange);
+}
+.fcard h3 { margin-bottom: 7px; }
+.fcard p { font-size: .95rem; color: var(--ink-muted); line-height: 1.58; }
+@media (max-width: 880px) { .features__grid { grid-template-columns: 1fr; } }
+
+/* ===== Founding offer (dark) ============================================= */
+.offer {
+  background: var(--navy);
+  color: var(--white);
+  padding: 82px 0;
+  position: relative;
+  overflow: hidden;
+}
+.offer::after {
+  content: '';
+  position: absolute;
+  right: -180px; top: -180px;
+  width: 560px; height: 560px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(249,115,22,.22), transparent 66%);
+  pointer-events: none;
+}
+.offer .wrap { position: relative; z-index: 1; }
+.offer__grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 60px; align-items: center; }
+.offer h2 { color: var(--white); margin: 16px 0 18px; }
+.offer h2 em { color: var(--orange); font-style: normal; }
+.offer p { color: rgba(255,255,255,.68); line-height: 1.65; max-width: 46ch; }
+.offer__terms { list-style: none; padding: 0; margin: 26px 0 0; display: flex; flex-direction: column; gap: 12px; }
+.offer__terms li {
+  display: flex; gap: 11px; align-items: flex-start;
+  color: rgba(255,255,255,.82);
+  font-size: .98rem;
+}
+.offer__terms svg { flex: 0 0 auto; margin-top: 3px; color: var(--orange); }
+
+.claim {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-lg);
+}
+.claim h3 { margin-bottom: 6px; }
+.claim__sub { font-size: .93rem; color: var(--ink-muted); margin-bottom: 22px; line-height: 1.5; }
+.claim__ok {
+  display: none;
+  gap: 11px;
+  padding: 16px;
+  border-radius: 11px;
+  background: var(--free-tint);
+  border: 1px solid rgba(14,164,122,.28);
+  color: #0B7A5B;
+  font-size: .93rem;
+  line-height: 1.5;
+}
+.claim__ok.is-visible { display: flex; }
+.claim__ok svg { flex: 0 0 auto; margin-top: 2px; }
+
+@media (max-width: 940px) { .offer__grid { grid-template-columns: 1fr; gap: 40px; } }
+
+/* ===== Customer waitlist (quiet, secondary) ============================== */
+.cust { padding: 74px 0; }
+.cust__box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+  padding: 34px 38px;
+  background: var(--white);
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-lg);
+}
+.cust__box h3 { margin-bottom: 6px; }
+.cust__box p { font-size: .96rem; color: var(--ink-muted); max-width: 44ch; line-height: 1.55; }
+.cust__form { display: flex; gap: 10px; flex-wrap: wrap; }
+.cust__form .input { width: 220px; }
+</style>
+</head>
+<body>
+
+<!-- ===================== NAV ===================== -->
+<nav class="nav" id="nav">
+  <div class="wrap nav__inner">
+    <a href="/" class="logo" aria-label="NearAppoint home">
+      <img src="assets/logo.svg" alt="NearAppoint">
+    </a>
+    <div class="nav__links">
+      <a href="#problem">The problem</a>
+      <a href="#features">What you get</a>
+      <a href="#pricing">Founding salons</a>
+    </div>
+    <div class="nav__cta">
+      <a href="login.html" class="btn btn--ghost">Sign in</a>
+      <a href="#pricing" class="btn btn--primary">Get early access</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<header class="hero">
+  <div class="wrap hero__grid">
+
+    <div class="hero__copy">
+      <span class="eyebrow">Launching in Lahore</span>
+      <h1>Run your salon from <span class="accent">one screen.</span></h1>
+      <p class="lede">
+        The register, the WhatsApp bookings, the walk-ins, the staff schedule — all in one
+        place that never double-books and never forgets a customer.
+      </p>
+      <div class="hero__actions">
+        <a href="#pricing" class="btn btn--primary btn--lg">Become a founding salon</a>
+        <a href="#features" class="btn btn--ghost btn--lg">See how it works</a>
+      </div>
+      <p class="hero__note">
+        <span class="pulse" aria-hidden="true"></span>
+        <span><strong>Free for the first 20 salons.</strong> No card. Set up in under 10 minutes.</span>
+      </p>
+    </div>
+
+    <!-- SIGNATURE ELEMENT: a salon's actual day, running. -->
+    <div class="today" role="img" aria-label="A live example of a salon's daily schedule in NearAppoint, showing two stylists, their appointments, and a moving current-time line.">
+      <div class="today__bar">
+        <div class="today__title">
+          <strong>Today</strong>
+          <span class="today__date" id="todayDate">—</span>
+        </div>
+        <div class="today__clock">
+          <span class="pulse" aria-hidden="true"></span>
+          <span id="todayClock">—</span>
+        </div>
+      </div>
+
+      <div class="today__cols">
+        <div class="today__col"></div>
+        <div class="today__col">Hina</div>
+        <div class="today__col">Fatima</div>
+      </div>
+
+      <div class="today__grid" id="todayGrid">
+        <div class="today__times" id="todayTimes"></div>
+        <div class="today__lane" id="laneHina"></div>
+        <div class="today__lane" id="laneFatima"></div>
+        <div class="nowline" id="nowline" style="top: 138px;"></div>
+      </div>
+
+      <div class="today__foot">
+        <span id="todayCount"><b>6</b> appointments &middot; <b>2</b> stylists</span>
+        <button class="today__walkin" id="walkinBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Walk-in
+        </button>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+<!-- ===================== PROBLEM ===================== -->
+<section class="problem" id="problem">
+  <div class="wrap">
+    <div class="problem__head">
+      <span class="eyebrow eyebrow--muted">What we heard</span>
+      <h2>You already know where the money leaks.</h2>
+      <p class="lede">Three things every salon owner in Lahore says, almost word for word.</p>
+    </div>
+
+    <div class="problem__grid">
+      <div class="pcard">
+        <p class="pcard__quote">I have forty unread messages and I don't know which ones are bookings.</p>
+        <p>WhatsApp is not an appointment book. Every message you miss at 6pm on a Saturday is a customer who went somewhere else.</p>
+      </div>
+      <div class="pcard">
+        <p class="pcard__quote">Two customers came at the same time for the same girl.</p>
+        <p>It happens because your calendar lives in someone's head. In NearAppoint the same slot cannot be taken twice — the system will not allow it.</p>
+      </div>
+      <div class="pcard">
+        <p class="pcard__quote">She booked, and then she just didn't come.</p>
+        <p>An empty chair on a Saturday evening is money you can never get back. We track who does this, and we make it cost them something.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FEATURES ===================== -->
+<section class="features" id="features">
+  <div class="wrap">
+    <div class="features__head">
+      <span class="eyebrow">What you get</span>
+      <h2>Built for the counter, not for a boardroom.</h2>
+      <p class="lede">
+        Designed to be used standing up, one-handed, in a hurry — and to keep working
+        when the internet doesn't.
+      </p>
+    </div>
+
+    <div class="features__grid">
+
+      <div class="fcard">
+        <div class="fcard__icon">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <div>
+          <h3>A day view that matches your floor</h3>
+          <p>One column per stylist, a red line showing where you are right now. Drag an appointment to move it. That's the whole learning curve.</p>
+        </div>
+      </div>
+
+      <div class="fcard">
+        <div class="fcard__icon">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+        </div>
+        <div>
+          <h3>Walk-ins in ten seconds</h3>
+          <p>Type the number. If she's been before, her name, her stylist and her usual service fill in automatically. One tap and she's in.</p>
+        </div>
+      </div>
+
+      <div class="fcard">
+        <div class="fcard__icon">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <div>
+          <h3>The same slot can't be booked twice</h3>
+          <p>Not "we check for conflicts." The system physically cannot save two appointments in the same chair at the same time.</p>
+        </div>
+      </div>
+
+      <div class="fcard">
+        <div class="fcard__icon">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        </div>
+        <div>
+          <h3>Reminders on WhatsApp, automatically</h3>
+          <p>A day before, and two hours before, with a button that says "still coming?" The ones who can't make it tell you — while you can still fill the slot.</p>
+        </div>
+      </div>
+
+      <div class="fcard">
+        <div class="fcard__icon">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div>
+          <h3>Every customer, remembered</h3>
+          <p>Who she is, when she last came, what she had, who did it, and that she's allergic to ammonia. Your staff can leave. This doesn't.</p>
+        </div>
+      </div>
+
+      <div class="fcard">
+        <div class="fcard__icon">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16"/><path d="m6 16 4-6 4 3 5-8"/></svg>
+        </div>
+        <div>
+          <h3>The numbers you've never had</h3>
+          <p>Which hours are dead. Which service actually earns per minute. Which girl's customers come back. Nobody in this market has ever shown you this.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOUNDING SALONS ===================== -->
+<section class="offer" id="pricing">
+  <div class="wrap offer__grid">
+
+    <div>
+      <span class="eyebrow eyebrow--light">Founding salons &middot; Lahore</span>
+      <h2>We're looking for <em>twenty salons</em> to build this with.</h2>
+      <p>
+        We're not live yet, and we're not going to pretend otherwise. What we have is
+        a product being built with salon owners in the room, and twenty free seats for the
+        people who help us get it right.
+      </p>
+      <ul class="offer__terms">
+        <li>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <span><strong style="color:#fff">Free for three months.</strong> No card, no contract.</span>
+        </li>
+        <li>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <span>We come to your salon and set it up for you.</span>
+        </li>
+        <li>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <span>You tell us what's wrong, and we fix it that week.</span>
+        </li>
+        <li>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <span>Founding price locked, for as long as you stay.</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="claim">
+      <h3>Put your salon on the list</h3>
+      <p class="claim__sub">We'll call you. No forms to fill, no demo to sit through.</p>
+
+      <form id="claimForm" novalidate>
+        <div class="field">
+          <label class="field__label" for="salonName">Salon name</label>
+          <input class="input" type="text" id="salonName" name="salonName" placeholder="Glow Salon, Johar Town" required>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="claimPhone">Your number</label>
+          <div class="phone">
+            <span class="phone__code">
+              <svg width="16" height="12" viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" rx="1.5" fill="#01411C"/><rect width="5.5" height="14" rx="1.5" fill="#fff"/><circle cx="13.4" cy="7" r="3.4" fill="#fff"/><circle cx="14.7" cy="6" r="3.2" fill="#01411C"/></svg>
+              +92
+            </span>
+            <input type="tel" id="claimPhone" name="claimPhone" placeholder="300 1234567" inputmode="numeric" autocomplete="tel-national" maxlength="12" required>
+          </div>
+          <p class="field__hint">We'll send you a WhatsApp, not an email.</p>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--block btn--lg">Request early access</button>
+
+        <div class="form-error" id="claimError" role="alert">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="flex:0 0 auto;margin-top:2px"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          <span id="claimErrorText">Enter a valid Pakistani mobile number.</span>
+        </div>
+      </form>
+
+      <div class="claim__ok" id="claimOk" role="status">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <span><strong>You're on the list.</strong> We'll WhatsApp you within two days to arrange a visit.</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== CUSTOMER WAITLIST ===================== -->
+<section class="cust">
+  <div class="wrap">
+    <div class="cust__box">
+      <div>
+        <span class="eyebrow eyebrow--muted">For customers</span>
+        <h3 style="margin-top:14px">Booking opens once the salons are on.</h3>
+        <p>We'd rather show you twenty salons whose availability is real than two hundred whose isn't. Leave your number and we'll tell you when Lahore is live.</p>
+      </div>
+      <form class="cust__form" id="waitForm" novalidate>
+        <div class="phone" style="width:230px">
+          <span class="phone__code">+92</span>
+          <input type="tel" id="waitPhone" placeholder="300 1234567" inputmode="numeric" maxlength="12" aria-label="Your mobile number">
+        </div>
+        <button type="submit" class="btn btn--dark">Notify me</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__grid">
+      <div class="footer__col">
+        <a href="/" class="logo logo--footer" aria-label="NearAppoint home">
+          <img src="assets/logo.svg" alt="NearAppoint">
+        </a>
+        <p class="footer__blurb">The appointment book for salons in Pakistan. Find. Book. Arrive.</p>
+      </div>
+      <div class="footer__col">
+        <h4>Product</h4>
+        <a href="#features">What you get</a>
+        <a href="#pricing">Founding salons</a>
+        <a href="login.html">Sign in</a>
+      </div>
+      <div class="footer__col">
+        <h4>Company</h4>
+        <a href="#problem">Why we're building it</a>
+        <a href="mailto:hello@nearappoint.com">Contact</a>
+      </div>
+      <div class="footer__col">
+        <h4>Legal</h4>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>&copy; 2026 NearAppoint. Lahore, Pakistan.</span>
+      <span>Not yet accepting public bookings.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---- Nav border on scroll ---- */
+  var nav = document.getElementById('nav');
+  var onScroll = function () { nav.classList.toggle('is-stuck', window.scrollY > 8); };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  /* ---- The live Today card -------------------------------------------- */
+  var START_HOUR = 11;          // salon opens 11am
+  var SLOT_PX    = 46;          // one 30-min slot
+  var SLOTS      = 7;           // 11:00 → 14:30 visible
+
+  var times = document.getElementById('todayTimes');
+  var laneH = document.getElementById('laneHina');
+  var laneF = document.getElementById('laneFatima');
+  var nowline = document.getElementById('nowline');
+
+  // Time gutter
+  for (var i = 0; i < SLOTS; i++) {
+    var mins = START_HOUR * 60 + i * 30;
+    var el = document.createElement('div');
+    el.className = 'today__time';
+    el.textContent = String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0');
+    times.appendChild(el);
+  }
+
+  // Appointments — a plausible Saturday, not a demo of a demo
+  var book = [
+    { lane: laneH, at: 0, len: 2, who: 'Sana Malik',    what: 'Cut + blow-dry', done: true  },
+    { lane: laneH, at: 3, len: 3, who: 'Ayesha Tariq',  what: 'Hair colour',    done: false },
+    { lane: laneF, at: 1, len: 1, who: 'Zara Khan',     what: 'Threading',      done: true  },
+    { lane: laneF, at: 2, len: 2, who: 'Mehwish Ali',   what: 'Facial',         done: false },
+    { lane: laneF, at: 5, len: 2, who: 'Hania Sheikh',  what: 'Manicure',       done: false }
+  ];
+
+  function place(a, delay, walkin) {
+    var d = document.createElement('div');
+    d.className = 'appt' + (a.done ? ' appt--done' : '') + (walkin ? ' appt--walkin' : '');
+    d.style.top = (a.at * SLOT_PX + 3) + 'px';
+    d.style.height = (a.len * SLOT_PX - 7) + 'px';
+    d.style.animationDelay = delay + 'ms';
+    d.innerHTML = '<div class="appt__who"></div><div class="appt__what"></div>' +
+                  (walkin ? '<div class="appt__tag">Walk-in</div>' : '');
+    d.querySelector('.appt__who').textContent = a.who;
+    d.querySelector('.appt__what').textContent = a.what;
+    a.lane.appendChild(d);
+    return d;
+  }
+
+  book.forEach(function (a, i) { place(a, 260 + i * 90); });
+
+  /* Clock + now-line. Uses a fictional salon clock so the card always looks
+     like a working mid-afternoon, whatever time the visitor loads the page. */
+  var demoMins = START_HOUR * 60 + 90;   // 12:30
+  function tick() {
+    var h = Math.floor(demoMins / 60), m = demoMins % 60;
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    var h12 = h % 12 === 0 ? 12 : h % 12;
+    document.getElementById('todayClock').textContent =
+      h12 + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+    var offset = ((demoMins - START_HOUR * 60) / 30) * SLOT_PX;
+    nowline.style.top = offset + 'px';
+    demoMins += 1;
+    if (demoMins > START_HOUR * 60 + 30 * SLOTS - 30) demoMins = START_HOUR * 60 + 60;
+  }
+  tick();
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce) setInterval(tick, 2600);
+
+  // Date label
+  var dt = new Date();
+  document.getElementById('todayDate').textContent =
+    dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+
+  /* Walk-in button: the ten-second promise, made tangible. */
+  var walkinBtn = document.getElementById('walkinBtn');
+  var count = document.getElementById('todayCount');
+  var added = false;
+  walkinBtn.addEventListener('click', function () {
+    if (added) return;
+    added = true;
+    place({ lane: laneH, at: 6, len: 1, who: 'Nimra Javed', what: 'Threading' }, 0, true);
+    count.innerHTML = '<b>6</b> appointments &middot; <b>2</b> stylists';
+    walkinBtn.disabled = true;
+    walkinBtn.textContent = 'Added in 8 seconds';
+  });
+
+  /* ---- Forms ----------------------------------------------------------- */
+  // Pakistani mobile: 3XXXXXXXXX (10 digits, starts with 3)
+  function validPk(raw) {
+    var d = raw.replace(/\D/g, '');
+    return /^3\d{9}$/.test(d);
+  }
+  function formatPk(input) {
+    var d = input.value.replace(/\D/g, '').slice(0, 10);
+    input.value = d.length > 3 ? d.slice(0, 3) + ' ' + d.slice(3) : d;
+  }
+
+  ['claimPhone', 'waitPhone'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', function () { formatPk(el); });
+  });
+
+  var claimForm = document.getElementById('claimForm');
+  var claimError = document.getElementById('claimError');
+  var claimErrorText = document.getElementById('claimErrorText');
+  var claimOk = document.getElementById('claimOk');
+
+  claimForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = document.getElementById('salonName');
+    var phone = document.getElementById('claimPhone');
+
+    if (!name.value.trim()) {
+      claimErrorText.textContent = 'Tell us your salon\u2019s name so we know who\u2019s calling.';
+      claimError.classList.add('is-visible');
+      name.focus();
+      return;
+    }
+    if (!validPk(phone.value)) {
+      claimErrorText.textContent = 'That doesn\u2019t look like a Pakistani mobile number. It should start with 3.';
+      claimError.classList.add('is-visible');
+      phone.setAttribute('aria-invalid', 'true');
+      phone.focus();
+      return;
+    }
+
+    claimError.classList.remove('is-visible');
+    phone.removeAttribute('aria-invalid');
+
+    // TODO: POST to your backend / Supabase / Formspree.
+    // Right now this only confirms in the UI. Wire it up before you send traffic.
+    claimForm.style.display = 'none';
+    claimOk.classList.add('is-visible');
+  });
+
+  document.getElementById('waitForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var p = document.getElementById('waitPhone');
+    if (!validPk(p.value)) { p.setAttribute('aria-invalid', 'true'); p.focus(); return; }
+    p.removeAttribute('aria-invalid');
+    var btn = e.target.querySelector('button');
+    btn.textContent = 'We\u2019ll message you';
+    btn.disabled = true;
+    p.disabled = true;
+  });
+
+})();
+</script>
+
+</body>
+</html>
