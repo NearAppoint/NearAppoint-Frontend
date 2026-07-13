@@ -1,73 +1,98 @@
-# NearAppoint — landing + auth
+# nearappoint-frontend
 
-Static. No build step. Deploy as-is.
+Customer app + Business OS. `nearappoint.com` · `business.nearappoint.com`
 
-## Files
+**This repo cannot touch the database.**
+
+---
+
+## The architecture, in one paragraph
+
+`src/lib/auth.ts` creates a Supabase client, exports its `.auth` namespace, and
+throws the client away. What you get back has `signInWithOtp()`, `verifyOtp()`,
+`getSession()` — and it does **not** have `.from()`, `.rpc()` or `.storage`.
+
+You cannot query a table from this repo. Not because you shouldn't — because
+**the method does not exist on the object you are handed.** No code review to
+forget, no rule to remember, no new developer to brief.
+
+All data goes through `src/lib/api-client.ts` → `api.nearappoint.com`.
+
+### Why that matters to you specifically
+
+`src/types/api.ts` defines `BookingRequest`:
+
+```ts
+export interface BookingRequest {
+  branch_id: string;
+  service_ids: string[];
+  staff_id: string | null;
+  start_at: string;
+}
 ```
-index.html    landing page (salon-focused)
-login.html    sign in — phone + WhatsApp/SMS OTP
-verify.html   OTP entry (6 boxes, paste, resend, SMS fallback)
-signup.html   salon signup
-styles.css    shared brand tokens + components
 
-assets/logo-mark.svg       the mark, for light backgrounds
-assets/logo-mark-dark.svg  the mark, for dark backgrounds (footer)
-assets/favicon.svg         tight crop, no shadow
-assets/logo-lockup.svg     horizontal mark + wordmark, for social/email/print
+**There is no `price` field.** A frontend developer cannot send a price because
+there is nowhere to put one. Your Muddarris pricing-manipulation bug isn't
+"prevented by code review" — it is unrepresentable in the type system.
+
+CI enforces this (`.github/workflows/ci.yml` → `boundaries`). A `.from()` call
+or a service-role key fails the build.
+
+---
+
+## Structure
+
+```
+src/
+  app/
+    (marketing)/    nearappoint.com — landing
+    (auth)/         /login /signup /verify
+    (business)/     Business OS            <- Feature F2
+    (customer)/     Customer app           <- Phase 2
+  components/
+    ui/             design system. Button, Input, Card, Pill, Accordion, Logo.
+    marketing/      landing sections
+  features/
+    auth/           PhoneInput, OtpInput, useOtp
+  lib/
+    auth.ts         AUTH ONLY. No table access possible.
+    api-client.ts   the only way to reach data
+    utils.ts, phone.ts, display.ts
+  config/
+    site.ts         marketing content + CLAIMS (read the warning)
+    env.ts          zod-validated
+  constants/
+    marketing.ts    content as typed data, not markup
+  types/
+    api.ts          the API contract
 ```
 
-## About the logo
-Redrawn as vector geometry — 2KB, sharp at any size, transparent clock face and
-badge gap so it sits on any background.
+---
 
-The **site** uses `logo-mark.svg` plus live HTML text for "NearAppoint", so the
-wordmark renders in Bricolage Grotesque (the real display face) rather than
-being baked into the SVG. Change the wordmark in the HTML, not the SVG.
+## Setup
 
-`logo-lockup.svg` is the standalone version for anywhere you can't use HTML —
-social cards, email signatures, print. It falls back to a system geometric face
-if Bricolage isn't installed on the viewer's machine.
-
-**Dark backgrounds:** use `logo-mark-dark.svg`. The clock face is filled and the
-badge inverts, because the standard mark's navy hands disappear on navy.
-
-## Deploy
 ```bash
-npx vercel --prod
+npm install
+cp .env.example .env.local     # NEXT_PUBLIC_API_URL=http://localhost:4000
+npm run dev                    # :3000
 ```
-Then point nearappoint.com at it in the Vercel dashboard.
 
-## ⚠️ READ THIS BEFORE YOU GO LIVE
+Run `nearappoint-backend` on :4000 alongside it.
 
-The landing page currently carries the numbers and testimonials from the Figma
-design: 2,400+ businesses, 85,000+ customers, 320,000+ appointments, 18 cities,
-and six named customer testimonials.
+---
 
-**None of that is true yet.** Publishing invented stats and invented customer
-quotes with real-sounding names is false advertising, and it is the kind of thing
-that gets screenshotted.
+## ⚠️ Before you send anyone to this page
 
-Two fixes, both easy:
+`src/config/site.ts`:
 
-1. **The stats** live in one place — the `STATS` object at the top of the
-   `<script>` in `index.html`. Change them there and every instance updates.
-2. **The testimonials** are hardcoded in the Testimonials section. Delete them,
-   or replace them with real quotes you have permission to use.
+```ts
+showStats: false,          // 2,400 businesses / 85,000 customers — none of it true
+showTestimonials: false,   // Fatima Malik and Zara Khan do not exist
+```
 
-Honest early-stage copy converts better than fake social proof anyway:
-*"Launching in Lahore. Free for our first 20 salons."*
+Invented testimonials with real-sounding names is false advertising. In a
+market that runs on word of mouth, the first salon owner who asks to speak to
+"Zara Khan of Pearl Beauty Parlor" is the last one who trusts you.
 
-## Before you send any traffic
-The forms currently only confirm in the UI. Wire these up:
-
-- `index.html`  → salon early-access form + customer waitlist
-- `login.html`  → POST /auth/otp/request
-- `verify.html` → POST /auth/otp/verify  (currently ALWAYS fails, on purpose, so you can see the error state)
-- `signup.html` → POST /auth/otp/request, create business only AFTER verify
-
-Quickest path: a Supabase table + `supabase-js`, or Formspree for a day-one hack.
-
-## Rate limits (do this server-side, day one)
-OTP request is the most abusable endpoint you will ever ship. Every abuse costs
-you money in SMS. **3 per hour per number, 10 per hour per IP, 5 verify attempts
-per code then burn it.**
+Honest copy converts better anyway: **"Launching in Lahore. Free for our first
+20 salons."**
