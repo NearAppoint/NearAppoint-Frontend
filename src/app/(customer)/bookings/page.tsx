@@ -66,12 +66,12 @@ export default function MyBookings() {
           <p className="mx-auto mb-7 max-w-[38ch] text-[0.98rem] leading-relaxed text-warm-muted">
             {past.length > 0
               ? 'Book again with somewhere you\u2019ve been, or find somewhere new.'
-              : 'Find a salon near you and book in about a minute.'}
+              : 'Find a business near you and book in about a minute.'}
           </p>
 
           <Link href="/home"
             className="inline-flex items-center gap-2 rounded-full bg-brand px-8 py-4 font-display text-[1rem] font-bold text-white shadow-brand transition-colors hover:bg-brand-hover">
-            Find a salon
+            Explore businesses
           </Link>
         </div>
       ) : (

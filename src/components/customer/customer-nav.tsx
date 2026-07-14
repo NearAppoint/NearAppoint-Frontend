@@ -2,7 +2,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Calendar, LogOut, Menu, X, Search } from 'lucide-react';
+import { Calendar, LogOut, Menu, X, Compass } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import { Button } from '@/components/ui/button';
 import { auth } from '@/lib/auth';
@@ -33,7 +33,7 @@ export function CustomerNav() {
         <div className="hidden items-center gap-7 lg:flex">
           <Link href="/home"
             className="inline-flex items-center gap-1.5 text-[0.92rem] font-medium text-warm-muted transition-colors hover:text-warm-ink">
-            <Search className="size-4" /> Find a salon
+            <Compass className="size-4" /> Explore
           </Link>
           {signedIn && (
             <Link href="/bookings"
@@ -70,7 +70,7 @@ export function CustomerNav() {
         <div className="border-t border-warm-line/50 bg-warm px-6 py-4 lg:hidden">
           <Link href="/home" onClick={() => setOpen(false)}
             className="flex items-center gap-2.5 border-b border-warm-line/50 py-3.5 font-display font-semibold text-warm-ink">
-            <Search className="size-4" /> Find a salon
+            <Compass className="size-4" /> Explore
           </Link>
           {signedIn && (
             <Link href="/bookings" onClick={() => setOpen(false)}

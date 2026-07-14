@@ -21,6 +21,9 @@ export default function CustomerHome() {
   const [cat, setCat] = React.useState<string | null>(null);
   const [results, setResults] = React.useState<BusinessCardData[] | null>(null);
   const [coords, setCoords] = React.useState<{ lat: number; lng: number } | null>(null);
+  /* A spinner that never resolves is the worst possible failure: she doesn't
+     know if it's broken or just slow, so she waits, then leaves. Say something. */
+  const [error, setError] = React.useState<string | null>(null);
 
   /**
    * Location is asked for when she first touches the search box — NOT on load.
@@ -44,9 +47,22 @@ export default function CustomerHome() {
     if (cat) p.set('category', cat);
     if (coords) { p.set('lat', String(coords.lat)); p.set('lng', String(coords.lng)); }
 
-    const r = await fetch(`/api/v1/public/search?${p}`);
-    const j = await r.json();
-    setResults(j.data ?? []);
+    try {
+      const r = await fetch(`/api/v1/public/search?${p}`);
+      const j = await r.json();
+
+      if (!r.ok) {
+        setError(j.error?.title ?? 'Search isn\u2019t working right now.');
+        setResults([]);
+        return;
+      }
+
+      setError(null);
+      setResults(j.data ?? []);
+    } catch {
+      setError('Couldn\u2019t reach the server. Check your connection.');
+      setResults([]);
+    }
   }, [q, cat, coords]);
 
   React.useEffect(() => {
@@ -76,7 +92,7 @@ export default function CustomerHome() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={askLocation}
-          placeholder="Search salons, parlors, or a service…"
+          placeholder="Search businesses, or a service…"
           className="min-w-0 flex-1 border-0 bg-transparent text-[1rem] text-warm-ink placeholder:text-warm-faint focus:outline-none"
         />
         <span className="hidden flex-none items-center gap-1.5 whitespace-nowrap rounded-full bg-warm-low px-3.5 py-2 text-[0.78rem] font-semibold text-warm-muted sm:flex">
@@ -84,15 +100,18 @@ export default function CustomerHome() {
         </span>
       </div>
 
-      {/* categories */}
-      <div className="mb-12 flex flex-wrap gap-2.5">
+      {/* CATEGORIES — one line, always. This is a six-niche platform, and the
+          six niches should read as one row, not a ragged block that implies
+          some matter more than others. Scrolls horizontally on small screens. */}
+      <div className="-mx-1 mb-12 flex gap-2.5 overflow-x-auto px-1 pb-2
+                      [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {CATEGORIES.map(({ slug, name, icon: Icon, soon }) => (
           <button
             key={slug}
             disabled={soon}
             onClick={() => setCat(cat === slug ? null : slug)}
             className={cn(
-              'inline-flex items-center gap-2 rounded-full border px-5 py-3 text-[0.9rem] transition-all',
+              'inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-full border px-5 py-3 text-[0.9rem] transition-all',
               cat === slug
                 ? 'border-brand bg-brand font-semibold text-white shadow-brand'
                 : soon
@@ -100,10 +119,10 @@ export default function CustomerHome() {
                   : 'border-warm-line bg-white text-warm-ink hover:border-brand hover:text-brand',
             )}
           >
-            <Icon className="size-4" />
+            <Icon className="size-4 flex-none" />
             {name}
             {soon && (
-              <span className="rounded-full bg-warm-low px-2 py-0.5 text-[0.58rem] font-bold uppercase tracking-wide">
+              <span className="flex-none rounded-full bg-warm-low px-2 py-0.5 text-[0.58rem] font-bold uppercase tracking-wide">
                 Soon
               </span>
             )}
@@ -112,7 +131,21 @@ export default function CustomerHome() {
       </div>
 
       {/* results */}
-      {results === null ? (
+      {error ? (
+        /* Say what broke. A spinner that never resolves tells her nothing. */
+        <div className="rounded-[20px] border border-red-200 bg-red-50 p-10 text-center">
+          <h2 className="mb-2.5 font-display text-[1.3rem] font-extrabold tracking-tight text-red-800">
+            Something went wrong.
+          </h2>
+          <p className="mx-auto max-w-[44ch] text-[0.95rem] leading-relaxed text-red-700">
+            {error}
+          </p>
+          <button onClick={() => void search()}
+            className="mt-5 rounded-full bg-brand px-6 py-3 font-display text-[0.9rem] font-bold text-white">
+            Try again
+          </button>
+        </div>
+      ) : results === null ? (
         <div className="grid place-items-center py-24 text-warm-faint">
           <Loader2 className="size-6 animate-spin" />
         </div>
@@ -125,7 +158,7 @@ export default function CustomerHome() {
           <p className="mx-auto max-w-[46ch] text-[0.98rem] leading-relaxed text-warm-muted">
             {q || cat
               ? 'Try a different search, or clear the filters to see everyone.'
-              : 'We\u2019re onboarding our first salons in person, one at a time \u2014 so that when you book a 6pm slot, it\u2019s really there.'}
+              : 'We\u2019re onboarding our first businesses in person, one at a time \u2014 so that when you book a 6pm slot, it\u2019s really there.'}
           </p>
           {(q || cat) && (
             <button onClick={() => { setQ(''); setCat(null); }}
