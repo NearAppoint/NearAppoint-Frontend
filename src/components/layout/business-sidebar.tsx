@@ -3,7 +3,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  CalendarDays, LayoutDashboard, Users, Scissors, UserCog, Settings, LogOut, Menu, X,
+  CalendarDays, LayoutDashboard, Users, Scissors, UserCog, LogOut, Menu, X, Clock,
 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import { auth } from '@/lib/auth';
@@ -11,11 +11,11 @@ import { cn } from '@/lib/utils';
 
 const NAV = [
   { href: '/today',     label: 'Today',     icon: LayoutDashboard },
-  { href: '/calendar',  label: 'Calendar',  icon: CalendarDays, soon: true },
+  { href: '/calendar',  label: 'Calendar',  icon: CalendarDays },
   { href: '/customers', label: 'Customers', icon: Users,        soon: true },
   { href: '/services',  label: 'Services',  icon: Scissors },
   { href: '/staff',     label: 'Staff',     icon: UserCog },
-  { href: '/settings',  label: 'Settings',  icon: Settings,     soon: true },
+  { href: '/settings/hours', label: 'Hours', icon: Clock },
 ];
 
 export function BusinessSidebar({ businessName }: { businessName: string }) {

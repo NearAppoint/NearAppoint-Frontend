@@ -1,155 +1,239 @@
-import { Plus, Users, Scissors, Clock, ArrowRight } from 'lucide-react';
-import { createClient } from '@/server/supabase-server';
-import { AccountService } from '@/server/services/account.service';
-import { db } from '@/server/database/client';
+'use client';
+import * as React from 'react';
+import Link from 'next/link';
+import {
+  Scissors, Users, Clock, ArrowRight, Loader2, Check, CircleDot,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { WalkInDialog } from '@/components/business/walk-in-dialog';
+import { formatPKR } from '@/lib/money';
+import { cn } from '@/lib/utils';
 
-export const metadata = { title: 'Today' };
-export const dynamic = 'force-dynamic';
+interface Item {
+  id: string; reference: string; status: string;
+  customer_name: string; staff_name: string | null;
+  services: string[]; start_at: string; end_at: string;
+  total: number; source: string;
+}
+interface Staff { id: string; full_name: string; service_ids: string[]; is_bookable: boolean }
+interface Group { id: string; name: string; services: { id: string; name: string; duration_minutes: number; price: number | null }[] }
 
 /**
- * TODAY — the screen she opens every morning, forever.
+ * TODAY.
  *
- * Right now she has no services, no staff and no appointments. So this screen
- * has one job: get her set up.
+ * The screen she opens every morning, forever.
  *
- * NOT a fake dashboard with zeroes in it. An empty revenue chart on day one is
- * a screen that says "this product has nothing for you." The setup checklist
- * says "here is the next thing to do."
+ * Until she has services and staff, this is a setup checklist — NOT a dashboard
+ * of zeroes. An empty revenue chart on day one says "this product has nothing
+ * for you." A checklist says "here is the next thing to do."
  */
-export default async function TodayPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const account = await AccountService.get(user!.id);
-  const businessId = account!.businessId!;
+export default function TodayPage() {
+  const [items, setItems] = React.useState<Item[] | null>(null);
+  const [staff, setStaff] = React.useState<Staff[]>([]);
+  const [groups, setGroups] = React.useState<Group[]>([]);
 
-  const sb = db();
-
-  const [{ count: serviceCount }, { count: staffCount }, { data: branch }, { data: sub }] =
-    await Promise.all([
-      sb.from('services').select('id', { count: 'exact', head: true })
-        .eq('business_id', businessId).is('deleted_at', null),
-      sb.from('staff').select('id', { count: 'exact', head: true })
-        .eq('business_id', businessId).is('deleted_at', null).eq('is_bookable', true),
-      sb.from('branches').select('id, name, city, area, landmark')
-        .eq('business_id', businessId).limit(1).maybeSingle(),
-      sb.from('subscriptions').select('status, trial_ends_at, plans(name)')
-        .eq('business_id', businessId).maybeSingle(),
+  const load = React.useCallback(async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const [a, s, g] = await Promise.all([
+      fetch(`/api/v1/appointments?date=${today}`).then(r => r.json()),
+      fetch('/api/v1/staff').then(r => r.json()),
+      fetch('/api/v1/services').then(r => r.json()),
     ]);
+    setItems(a.data ?? []);
+    setStaff((s.data ?? []).filter((x: Staff) => x.is_bookable));
+    setGroups(g.data ?? []);
+  }, []);
 
-  const hasServices = (serviceCount ?? 0) > 0;
-  const hasStaff    = (staffCount ?? 0) > 0;
-  const isSetUp     = hasServices && hasStaff;
+  React.useEffect(() => { void load(); }, [load]);
 
-  const trialDaysLeft = sub?.trial_ends_at
-    ? Math.max(0, Math.ceil((new Date(sub.trial_ends_at).getTime() - Date.now()) / 86_400_000))
-    : null;
+  if (items === null) {
+    return <div className="grid place-items-center py-24 text-faint"><Loader2 className="size-6 animate-spin" /></div>;
+  }
+
+  const services = groups.flatMap(g => g.services);
+  const hasServices = services.length > 0;
+  const hasStaff = staff.length > 0;
+  const ready = hasServices && hasStaff;
+
+  const done = items.filter(i => i.status === 'completed');
+  const earned = done.reduce((n, i) => n + i.total, 0);
+  const active = items.filter(i => i.status !== 'completed');
 
   const today = new Date().toLocaleDateString('en-GB', {
     weekday: 'long', day: 'numeric', month: 'long',
   });
 
   return (
-    <div className="mx-auto max-w-[1000px]">
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <div className="mx-auto max-w-[900px]">
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="mb-1 font-display text-[0.8rem] font-bold uppercase tracking-wider text-faint">
+          <p className="mb-1 font-display text-[0.78rem] font-bold uppercase tracking-wider text-faint">
             {today}
           </p>
           <h1 className="text-[2rem]">Today</h1>
         </div>
-
-        {isSetUp && (
-          <Button size="lg">
-            <Plus /> Walk-in
-          </Button>
-        )}
+        {ready && <WalkInDialog groups={groups} staff={staff} onDone={load} />}
       </div>
 
-      {trialDaysLeft !== null && sub?.status === 'trialing' && (
-        <div className="mb-6 rounded border border-brand/25 bg-brand-tint2 px-4 py-3 text-[0.88rem] text-ink">
-          <b className="font-display font-bold">{trialDaysLeft} days</b> left on your free trial.
-        </div>
-      )}
-
-      {!isSetUp ? (
-        /* ---------------- SETUP: the only useful thing on day one ---------- */
+      {!ready ? (
+        /* ---------------- SETUP ---------------- */
         <>
           <Card className="mb-6 border-brand/25 bg-brand-tint2">
-            <h2 className="mb-2 text-[1.3rem]">Let&apos;s get you set up.</h2>
+            <h2 className="mb-2 text-[1.3rem]">Two things and you&apos;re taking bookings.</h2>
             <p className="max-w-[52ch] text-[0.93rem] leading-relaxed text-muted">
-              Two things and you can start taking bookings. It takes about five
-              minutes — and we&apos;ll do it with you.
+              About five minutes. We&apos;ll do it with you.
             </p>
           </Card>
 
           <div className="space-y-3">
-            <SetupStep
-              n={1}
-              done={hasServices}
-              icon={<Scissors className="size-[18px]" />}
+            <Step n={1} done={hasServices} icon={<Scissors className="size-[18px]" />}
               title="Add your services"
-              desc="Pick your category and we'll load the usual services with typical durations. Edit the prices and you're done."
-              cta="Add services"
-              href="/services"
-            />
-            <SetupStep
-              n={2}
-              done={hasStaff}
-              icon={<Users className="size-[18px]" />}
+              desc="We'll load the usual ones with typical durations. You set the prices."
+              href="/services" />
+            <Step n={2} done={hasStaff} icon={<Users className="size-[18px]" />}
               title="Add your staff"
-              desc="Who works there, what they do, and when. They don't need accounts — they just need to exist on the calendar."
-              cta="Add staff"
-              href="/staff"
-              locked={!hasServices}
-            />
+              desc="Who works here and what they do. They don't need accounts."
+              href="/staff" locked={!hasServices} />
           </div>
-
-          {branch && (
-            <Card className="mt-8">
-              <p className="mb-1 font-display text-[0.72rem] font-bold uppercase tracking-wider text-faint">
-                Your branch
-              </p>
-              <p className="font-display text-[1rem] font-bold">{branch.name}</p>
-              {/* Landmark FIRST. "House 42, Street 7" will not get a customer to
-                  your door in Lahore. "Opposite Emporium Mall" will. */}
-              {branch.landmark && (
-                <p className="mt-1 text-[0.88rem] text-ink">{branch.landmark}</p>
-              )}
-              <p className="text-[0.85rem] text-muted">
-                {branch.area}, {branch.city}
-              </p>
-            </Card>
-          )}
         </>
       ) : (
-        /* ---------------- THE REAL TODAY VIEW ------------------------------ */
-        <Card className="py-16 text-center">
-          <div className="mx-auto mb-4 grid size-12 place-items-center rounded-lg bg-soft text-faint">
-            <Clock className="size-6" />
+        /* ---------------- THE DAY ---------------- */
+        <>
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Stat label="Appointments" value={String(items.length)} />
+            <Stat label="Completed" value={String(done.length)} />
+            <Stat label="Earned" value={formatPKR(earned)} accent />
+            <Stat label="In progress"
+              value={String(items.filter(i => i.status === 'in_progress').length)} />
           </div>
-          <h2 className="mb-2 text-[1.2rem]">No appointments yet today.</h2>
-          <p className="mx-auto mb-6 max-w-[38ch] text-[0.9rem] leading-relaxed text-muted">
-            When someone walks in or books, they&apos;ll appear here.
-          </p>
-          <Button><Plus /> Add a walk-in</Button>
-        </Card>
+
+          {items.length === 0 ? (
+            <Card className="py-16 text-center">
+              <div className="mx-auto mb-4 grid size-12 place-items-center rounded-lg bg-soft text-faint">
+                <Clock className="size-6" />
+              </div>
+              <h2 className="mb-2 text-[1.2rem]">Nothing yet today.</h2>
+              <p className="mx-auto mb-6 max-w-[36ch] text-[0.9rem] leading-relaxed text-muted">
+                When someone walks in, add them here and they&apos;ll appear on your
+                calendar.
+              </p>
+              <WalkInDialog groups={groups} staff={staff} onDone={load} />
+            </Card>
+          ) : (
+            <div className="space-y-5">
+              {active.length > 0 && (
+                <Card className="divide-y divide-line p-0">
+                  {active.map(i => <Row key={i.id} item={i} onDone={load} />)}
+                </Card>
+              )}
+
+              {done.length > 0 && (
+                <div>
+                  <p className="mb-2 px-1 font-display text-[0.75rem] font-bold uppercase tracking-wider text-faint">
+                    Finished
+                  </p>
+                  <Card className="divide-y divide-line p-0">
+                    {done.map(i => <Row key={i.id} item={i} onDone={load} />)}
+                  </Card>
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 }
 
-function SetupStep({ n, done, icon, title, desc, cta, href, locked }: {
+function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <Card className="p-4">
+      <p className="mb-1 text-[0.75rem] text-muted">{label}</p>
+      <p className={cn(
+        'tnum font-display text-[1.35rem] font-extrabold tracking-tight',
+        accent ? 'text-brand' : 'text-ink',
+      )}>
+        {value}
+      </p>
+    </Card>
+  );
+}
+
+function Row({ item, onDone }: { item: Item; onDone: () => Promise<void> }) {
+  const [busy, setBusy] = React.useState(false);
+
+  const advance = async (status: string) => {
+    setBusy(true);
+    await fetch(`/api/v1/appointments/${item.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status,
+        final_amount: status === 'completed' ? item.total : undefined,
+      }),
+    });
+    setBusy(false);
+    await onDone();
+  };
+
+  const time = new Date(item.start_at).toLocaleTimeString('en-GB', {
+    hour: '2-digit', minute: '2-digit', hour12: true,
+  });
+
+  const done = item.status === 'completed';
+  const live = item.status === 'in_progress';
+
+  return (
+    <div className={cn('flex flex-wrap items-center gap-3.5 p-4', done && 'opacity-55')}>
+      <span className="tnum w-[70px] flex-none font-mono text-[0.8rem] text-muted">{time}</span>
+
+      <div className="min-w-0 flex-1">
+        <p className={cn(
+          'font-display text-[0.95rem] font-bold text-ink',
+          done && 'line-through',
+        )}>
+          {item.customer_name}
+        </p>
+        <p className="truncate text-[0.8rem] text-muted">
+          {item.services.join(', ')}
+          {item.staff_name && <span className="text-faint"> · {item.staff_name}</span>}
+        </p>
+      </div>
+
+      <span className="tnum font-display text-[0.9rem] font-bold text-ink">
+        {formatPKR(item.total)}
+      </span>
+
+      {done ? (
+        <span className="inline-flex items-center gap-1.5 rounded bg-ok/12 px-2.5 py-1 font-display text-[0.68rem] font-bold text-ok">
+          <Check className="size-3" strokeWidth={3} /> Done
+        </span>
+      ) : live ? (
+        <Button size="sm" loading={busy} onClick={() => void advance('completed')}>
+          Complete
+        </Button>
+      ) : (
+        <Button size="sm" variant="secondary" loading={busy}
+          onClick={() => void advance('in_progress')}>
+          <CircleDot className="size-3.5" /> Start
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function Step({ n, done, icon, title, desc, href, locked }: {
   n: number; done: boolean; icon: React.ReactNode;
-  title: string; desc: string; cta: string; href: string; locked?: boolean;
+  title: string; desc: string; href: string; locked?: boolean;
 }) {
   return (
     <Card className={locked ? 'opacity-50' : ''}>
       <div className="flex items-start gap-4">
-        <span className={`grid size-9 flex-none place-items-center rounded-sm font-display text-[0.85rem] font-bold ${
-          done ? 'bg-ok/15 text-ok' : 'bg-brand-tint text-brand'
-        }`}>
+        <span className={cn(
+          'grid size-9 flex-none place-items-center rounded-sm font-display text-[0.85rem] font-bold',
+          done ? 'bg-ok/15 text-ok' : 'bg-brand-tint text-brand',
+        )}>
           {done ? '✓' : n}
         </span>
 
@@ -160,7 +244,7 @@ function SetupStep({ n, done, icon, title, desc, cta, href, locked }: {
 
         {!done && (
           <Button asChild variant="secondary" size="sm" className="flex-none">
-            <a href={locked ? '#' : href}>{cta} <ArrowRight /></a>
+            <Link href={locked ? '#' : href}>Go <ArrowRight /></Link>
           </Button>
         )}
       </div>
