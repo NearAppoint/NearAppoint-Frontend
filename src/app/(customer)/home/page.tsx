@@ -1,34 +1,48 @@
 'use client';
 import * as React from 'react';
-import { Search, MapPin, Loader2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Loader2, MapPin, SlidersHorizontal } from 'lucide-react';
 import { BusinessCard, type BusinessCardData } from '@/components/customer/business-card';
 import { CategoryCarousel } from '@/components/customer/category-carousel';
-import { cn } from '@/lib/utils';
+import { CustomerNav } from '@/components/customer/customer-nav';
 
-/** The six niches, in order. Hair Salons and Beauty Parlors are live. */
-export default function CustomerHome() {
-  const [q, setQ] = React.useState('');
+/**
+ * HOME.
+ *
+ * BANNERS FIRST. No hero, no headline, no "Find and book near you."
+ *
+ * A hero is what you show someone who doesn't know what your product is. She's
+ * signed in and looking for a haircut — she knows. Making her scroll past a
+ * slogan to reach the thing she came for is a tax on every single visit.
+ *
+ * Search lives in the HEADER, on every page. It IS the product.
+ */
+function HomeInner() {
+  const params = useSearchParams();
+
+  const [q, setQ] = React.useState(params.get('q') ?? '');
   const [cat, setCat] = React.useState<string | null>(null);
   const [results, setResults] = React.useState<BusinessCardData[] | null>(null);
   const [coords, setCoords] = React.useState<{ lat: number; lng: number } | null>(null);
-  /* A spinner that never resolves is the worst possible failure: she doesn't
-     know if it's broken or just slow, so she waits, then leaves. Say something. */
   const [error, setError] = React.useState<string | null>(null);
 
   /**
-   * Location is asked for when she first touches the search box — NOT on load.
+   * Location is asked for once, on first search — not on page load.
    *
    * Asked in context, at the moment the benefit is obvious, acceptance is
-   * several times higher. Asking on arrival is how you permanently lose the
-   * permission, and you only get one chance at it.
+   * several times higher. Asked on arrival, she says no, and you never get
+   * another chance.
    */
-  const askLocation = React.useCallback(() => {
+  React.useEffect(() => {
     if (coords || !navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      p => setCoords({ lat: p.coords.latitude, lng: p.coords.longitude }),
-      () => { /* she said no. We just won't show distances. */ },
-      { timeout: 6000 },
-    );
+    const t = setTimeout(() => {
+      navigator.geolocation.getCurrentPosition(
+        p => setCoords({ lat: p.coords.latitude, lng: p.coords.longitude }),
+        () => { /* she said no. We just won't show distances. */ },
+        { timeout: 6000 },
+      );
+    }, 1200);
+    return () => clearTimeout(t);
   }, [coords]);
 
   const search = React.useCallback(async () => {
@@ -61,87 +75,84 @@ export default function CustomerHome() {
   }, [search]);
 
   return (
-    <div className="container py-14 lg:py-20">
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-warm-low px-3.5 py-1.5 font-display text-[0.78rem] font-bold text-brand">
-        <MapPin className="size-3.5" /> Lahore
-      </span>
+    <>
+      {/* The header owns the search box. One search, everywhere. */}
+      <CustomerNav query={q} onQuery={setQ} />
 
-      <h1 className="my-5 max-w-[14ch] font-display text-[clamp(2.4rem,5vw,3.4rem)] font-extrabold leading-[1.08] tracking-[-0.03em] text-warm-ink">
-        Find and book{' '}
-        <span className="text-brand">near you.</span>
-      </h1>
+      <div className="container py-6 sm:py-8">
+        {/* BANNERS. First thing she sees. */}
+        <CategoryCarousel active={cat} onPick={setCat} />
 
-      <p className="mb-9 max-w-[46ch] text-[1.05rem] leading-relaxed text-warm-muted">
-        Real availability. Real prices. No phone calls.
-      </p>
-
-      {/* search */}
-      <div className="mb-7 flex max-w-[640px] items-center gap-3 rounded-full border border-warm-line bg-white px-5 py-4 shadow-[0_2px_12px_rgba(88,66,55,.05)] transition-all focus-within:border-brand focus-within:shadow-[0_4px_20px_rgba(249,115,22,.12)]">
-        <Search className="size-5 flex-none text-warm-faint" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onFocus={askLocation}
-          placeholder="Search businesses, or a service…"
-          className="min-w-0 flex-1 border-0 bg-transparent text-[1rem] text-warm-ink placeholder:text-warm-faint focus:outline-none"
-        />
-        <span className="hidden flex-none items-center gap-1.5 whitespace-nowrap rounded-full bg-warm-low px-3.5 py-2 text-[0.78rem] font-semibold text-warm-muted sm:flex">
-          <MapPin className="size-3.5" /> Lahore
-        </span>
-      </div>
-
-      <CategoryCarousel active={cat} onPick={setCat} />
-
-      {/* results */}
-      {error ? (
-        /* Say what broke. A spinner that never resolves tells her nothing. */
-        <div className="rounded-[20px] border border-red-200 bg-red-50 p-10 text-center">
-          <h2 className="mb-2.5 font-display text-[1.3rem] font-extrabold tracking-tight text-red-800">
-            Something went wrong.
-          </h2>
-          <p className="mx-auto max-w-[44ch] text-[0.95rem] leading-relaxed text-red-700">
-            {error}
-          </p>
-          <button onClick={() => void search()}
-            className="mt-5 rounded-full bg-brand px-6 py-3 font-display text-[0.9rem] font-bold text-white">
-            Try again
-          </button>
-        </div>
-      ) : results === null ? (
-        <div className="grid place-items-center py-24 text-warm-faint">
-          <Loader2 className="size-6 animate-spin" />
-        </div>
-      ) : results.length === 0 ? (
-        /* An empty state with no next action is a bug. */
-        <div className="rounded-[20px] border border-warm-line/60 bg-white p-12 text-center">
-          <h2 className="mb-3 font-display text-[1.5rem] font-extrabold tracking-tight text-warm-ink">
-            {q || cat ? 'Nothing matched that.' : 'We\u2019re just getting started in Lahore.'}
-          </h2>
-          <p className="mx-auto max-w-[46ch] text-[0.98rem] leading-relaxed text-warm-muted">
-            {q || cat
-              ? 'Try a different search, or clear the filters to see everyone.'
-              : 'We\u2019re onboarding our first businesses in person, one at a time \u2014 so that when you book a 6pm slot, it\u2019s really there.'}
-          </p>
-          {(q || cat) && (
-            <button onClick={() => { setQ(''); setCat(null); }}
-              className="mt-6 font-display text-[0.92rem] font-bold text-brand hover:underline">
-              Show everyone
+        {/* results */}
+        {error ? (
+          <div className="rounded-[20px] border border-red-200 bg-red-50 p-8 text-center sm:p-10">
+            <h2 className="mb-2.5 font-display text-[1.25rem] font-extrabold tracking-tight text-red-800">
+              Something went wrong.
+            </h2>
+            <p className="mx-auto max-w-[44ch] text-[0.94rem] leading-relaxed text-red-700">
+              {error}
+            </p>
+            <button onClick={() => void search()}
+              className="mt-5 rounded-full bg-brand px-6 py-3 font-display text-[0.9rem] font-bold text-white">
+              Try again
             </button>
-          )}
-        </div>
-      ) : (
-        <>
-          <p className="mb-6 text-[0.92rem] text-warm-muted">
-            <b className="tnum font-display font-bold text-warm-ink">{results.length}</b>
-            {' '}{results.length === 1 ? 'place' : 'places'}
-            {coords ? ' near you' : ' in Lahore'}
-          </p>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {results.map(b => <BusinessCard key={b.slug} b={b} />)}
           </div>
-        </>
-      )}
-    </div>
+        ) : results === null ? (
+          <div className="grid place-items-center py-20 text-warm-faint">
+            <Loader2 className="size-6 animate-spin" />
+          </div>
+        ) : results.length === 0 ? (
+          <div className="rounded-[20px] border border-warm-line/60 bg-white p-10 text-center sm:p-14">
+            <h2 className="mb-3 font-display text-[1.4rem] font-extrabold tracking-tight text-warm-ink">
+              {q || cat ? 'Nothing matched that.' : 'We\u2019re just getting started in Lahore.'}
+            </h2>
+            <p className="mx-auto max-w-[46ch] text-[0.96rem] leading-relaxed text-warm-muted">
+              {q || cat
+                ? 'Try a different search, or clear the filters to see everyone.'
+                : 'We\u2019re onboarding our first businesses in person, one at a time \u2014 so that when you book a 6pm slot, it\u2019s really there.'}
+            </p>
+            {(q || cat) && (
+              <button onClick={() => { setQ(''); setCat(null); }}
+                className="mt-6 rounded-full bg-brand px-6 py-3 font-display text-[0.9rem] font-bold text-white">
+                Show everyone
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-[0.92rem] text-warm-muted">
+                <b className="tnum font-display font-bold text-warm-ink">{results.length}</b>
+                {' '}{results.length === 1 ? 'place' : 'places'}
+                {coords ? ' near you' : ' in Lahore'}
+              </p>
+
+              {/* Sort and filters land here next — the Foodpanda rail. */}
+              <button
+                className="inline-flex items-center gap-2 rounded-full border border-warm-line bg-white px-4 py-2 font-display text-[0.84rem] font-semibold text-warm-ink transition-colors hover:border-brand hover:text-brand"
+              >
+                <SlidersHorizontal className="size-3.5" /> Filters
+              </button>
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {results.map(b => <BusinessCard key={b.slug} b={b} />)}
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+export default function CustomerHome() {
+  return (
+    <React.Suspense fallback={
+      <div className="grid min-h-[60vh] place-items-center text-warm-faint">
+        <Loader2 className="size-6 animate-spin" />
+      </div>
+    }>
+      <HomeInner />
+    </React.Suspense>
   );
 }

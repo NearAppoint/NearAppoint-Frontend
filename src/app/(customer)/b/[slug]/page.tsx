@@ -6,6 +6,7 @@ import {
   MapPin, Star, Clock, Phone, Loader2, Check, AlertCircle, ArrowRight, User, Info,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
+import { CustomerNav } from '@/components/customer/customer-nav';
 import { formatPKR } from '@/lib/money';
 import { formatAsTyped, digitsOnly, isValidPkMobile } from '@/lib/phone';
 import { auth } from '@/lib/auth';
@@ -85,9 +86,14 @@ export default function BusinessPage() {
   }, [b, slug]);
 
   if (!b) {
-    return <div className="grid min-h-[60vh] place-items-center text-warm-faint">
-      <Loader2 className="size-6 animate-spin" />
-    </div>;
+    return (
+      <>
+        <CustomerNav />
+        <div className="grid min-h-[60vh] place-items-center text-warm-faint">
+          <Loader2 className="size-6 animate-spin" />
+        </div>
+      </>
+    );
   }
 
   const all = b.menu.flatMap(g => g.services);
@@ -99,6 +105,8 @@ export default function BusinessPage() {
 
   return (
     <>
+      <CustomerNav />
+
       {/* ---- cover ---- */}
       <div className="relative h-[300px] bg-warm-low sm:h-[380px]">
         <Image

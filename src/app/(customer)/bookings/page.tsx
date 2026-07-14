@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {
   Calendar, MapPin, Clock, Loader2, Phone, Navigation, X, Check,
 } from 'lucide-react';
+import { CustomerNav } from '@/components/customer/customer-nav';
 import { formatPKR } from '@/lib/money';
 import { cn } from '@/lib/utils';
 
@@ -44,7 +45,10 @@ export default function MyBookings() {
   const past = rows.filter(b => !upcoming.includes(b));
 
   return (
-    <div className="container py-14 lg:py-16">
+    <>
+      <CustomerNav />
+
+      <div className="container py-10 lg:py-14">
       <span className="inline-flex items-center gap-1.5 rounded-full bg-warm-low px-3.5 py-1.5 font-display text-[0.78rem] font-bold text-brand">
         Your bookings
       </span>
@@ -81,16 +85,17 @@ export default function MyBookings() {
       )}
 
       {past.length > 0 && (
-        <>
-          <h2 className="mb-6 font-display text-[1.5rem] font-extrabold tracking-tight text-warm-ink">
-            Past
-          </h2>
-          <div className="space-y-5">
-            {past.map(b => <Card key={b.id} b={b} onDone={load} past />)}
-          </div>
-        </>
-      )}
-    </div>
+          <>
+            <h2 className="mb-6 font-display text-[1.5rem] font-extrabold tracking-tight text-warm-ink">
+              Past
+            </h2>
+            <div className="space-y-5">
+              {past.map(b => <Card key={b.id} b={b} onDone={load} past />)}
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }
 

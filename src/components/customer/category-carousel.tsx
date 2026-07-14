@@ -10,11 +10,15 @@ interface Cat {
   tagline: string;
   banner: string;
   icon: React.ComponentType<{ className?: string }>;
-  soon?: boolean;
 }
 
 /**
  * The six niches. In order.
+ *
+ * ALL SIX ARE LIVE. We launch when the whole platform is ready, not one
+ * category at a time — a marketplace that shows four "Coming soon" tiles is a
+ * marketplace that looks unfinished, and nobody trusts an unfinished
+ * marketplace with their Saturday.
  *
  * TAGLINES ARE HONEST. "Cuts, colour, beard & grooming" tells her what she can
  * book. "Look your best" tells her nothing and is what every competitor says.
@@ -40,7 +44,6 @@ const CATEGORIES: Cat[] = [
     tagline: 'Manicure, pedicure, gel & nail art',
     banner: '/images/banner-nail-studio.webp',
     icon: Hand,
-    soon: true,
   },
   {
     slug: 'mehndi_studio',
@@ -48,7 +51,6 @@ const CATEGORIES: Cat[] = [
     tagline: 'Bridal, party & occasion mehndi',
     banner: '/images/banner-mehndi-studio.webp',
     icon: Flower2,
-    soon: true,
   },
   {
     slug: 'wellness',
@@ -56,7 +58,6 @@ const CATEGORIES: Cat[] = [
     tagline: 'Spa, massage, therapy & relaxation',
     banner: '/images/banner-wellness.webp',
     icon: Leaf,
-    soon: true,
   },
   {
     slug: 'aesthetic_clinic',
@@ -64,7 +65,6 @@ const CATEGORIES: Cat[] = [
     tagline: 'Skin treatments & consultations',
     banner: '/images/banner-aesthetic-clinic.webp',
     icon: Sparkle,
-    soon: true,
   },
 ];
 
@@ -114,71 +114,69 @@ export function CategoryCarousel({ active, onPick }: {
   const Icon = c.icon;
 
   return (
-    <div className="mb-10">
+    <div className="mb-9">
       <div
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
-        className="group relative overflow-hidden rounded-[20px] border border-warm-line/50 bg-warm-low"
+        className="group relative overflow-hidden rounded-[18px] bg-warm-low sm:rounded-[22px]"
       >
         {/* Slides. All mounted, opacity-crossfaded — so the next banner is
             already decoded and there is no flash of empty box. */}
-        <div className="relative aspect-[3/1] min-h-[190px] w-full">
+        <div className="relative aspect-[16/9] w-full sm:aspect-[3/1] sm:min-h-[240px]">
           {CATEGORIES.map((cat, n) => (
             <button
               key={cat.slug}
-              onClick={() => !cat.soon && onPick(active === cat.slug ? null : cat.slug)}
+              onClick={() => onPick(active === cat.slug ? null : cat.slug)}
               aria-hidden={n !== i}
               tabIndex={n === i ? 0 : -1}
               className={cn(
-                'absolute inset-0 text-left transition-opacity duration-700',
+                'absolute inset-0 cursor-pointer text-left transition-opacity duration-700',
                 n === i ? 'opacity-100' : 'pointer-events-none opacity-0',
-                !cat.soon && 'cursor-pointer',
               )}
             >
+              {/* NO SCRIM. The banner is finished artwork — washing it out with a
+                  white gradient defeats the point of commissioning it. The text
+                  sits on its own solid panel instead, so the art stays intact. */}
               <Image
                 src={cat.banner}
                 alt=""
                 fill
                 priority={n === 0}
-                sizes="(max-width: 768px) 100vw, 1200px"
+                sizes="100vw"
                 className="object-cover"
               />
-
-              {/* Left-to-right scrim. The banners were drawn with empty space on
-                  the left for exactly this — the text sits in the quiet third. */}
-              <div className="absolute inset-0 bg-gradient-to-r from-warm-low via-warm-low/85 to-transparent" />
             </button>
           ))}
 
-          {/* Content sits above the slides so it doesn't fade with them —
-              the text stays crisp while the art crossfades behind it. */}
-          <div className="pointer-events-none absolute inset-0 flex flex-col justify-center p-7 sm:p-10">
-            <div className="max-w-[46%] min-w-[240px]">
-              <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1.5 font-display text-[0.68rem] font-bold uppercase tracking-[0.08em] text-brand backdrop-blur-sm">
-                <Icon className="size-3.5" />
-                {c.soon ? 'Coming soon' : 'Book now'}
+          {/* The text sits on its OWN card, floating over the art. The banner
+              stays fully visible; the copy stays fully readable. Neither has to
+              compromise for the other. */}
+          <div className="pointer-events-none absolute inset-0 flex items-center p-4 sm:p-7">
+            <div className="pointer-events-auto max-w-[300px] rounded-[16px] bg-white/92 p-5 shadow-[0_6px_24px_rgba(88,66,55,.12)] backdrop-blur-sm sm:max-w-[340px] sm:p-6">
+              <span className="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-warm-low px-2.5 py-1 font-display text-[0.62rem] font-bold uppercase tracking-[0.08em] text-brand">
+                <Icon className="size-3" />
+                Book now
               </span>
 
-              <h2 className="font-display text-[clamp(1.4rem,3vw,2.1rem)] font-extrabold leading-tight tracking-[-0.02em] text-warm-ink">
+              <h2 className="font-display text-[clamp(1.15rem,2.4vw,1.7rem)] font-extrabold leading-tight tracking-[-0.02em] text-warm-ink">
                 {c.name}
               </h2>
 
-              <p className="mt-2 max-w-[32ch] text-[0.92rem] leading-snug text-warm-muted">
+              <p className="mt-1.5 text-[0.85rem] leading-snug text-warm-muted">
                 {c.tagline}
               </p>
 
-              {!c.soon && (
-                <span className={cn(
-                  'pointer-events-auto mt-4 inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 font-display text-[0.88rem] font-bold transition-colors',
+              <button
+                onClick={() => onPick(active === c.slug ? null : c.slug)}
+                className={cn(
+                  'mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-display text-[0.85rem] font-bold transition-colors',
                   active === c.slug
                     ? 'bg-warm-ink text-white'
                     : 'bg-brand text-white hover:bg-brand-hover',
                 )}
-                  onClick={() => onPick(active === c.slug ? null : c.slug)}
-                >
-                  {active === c.slug ? 'Showing these' : 'Explore'}
-                </span>
-              )}
+              >
+                {active === c.slug ? 'Showing these' : 'Explore'}
+              </button>
             </div>
           </div>
         </div>
@@ -219,27 +217,19 @@ export function CategoryCarousel({ active, onPick }: {
           filter. She should be able to pick a category without waiting for it
           to come round. */}
       <div className="no-scrollbar -mx-1 mt-5 flex gap-2.5 overflow-x-auto px-1 pb-1">
-        {CATEGORIES.map(({ slug, name, icon: Icon, soon }) => (
+        {CATEGORIES.map(({ slug, name, icon: Icon }) => (
           <button
             key={slug}
-            disabled={soon}
             onClick={() => onPick(active === slug ? null : slug)}
             className={cn(
               'inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2.5 text-[0.86rem] transition-all',
               active === slug
                 ? 'border-brand bg-brand font-semibold text-white shadow-brand'
-                : soon
-                  ? 'cursor-default border-warm-line/50 bg-white/60 text-warm-faint'
-                  : 'border-warm-line bg-white text-warm-ink hover:border-brand hover:text-brand',
+                : 'border-warm-line bg-white text-warm-ink hover:border-brand hover:text-brand',
             )}
           >
             <Icon className="size-4 flex-none" />
             {name}
-            {soon && (
-              <span className="flex-none rounded-full bg-warm-low px-2 py-0.5 text-[0.56rem] font-bold uppercase tracking-wide">
-                Soon
-              </span>
-            )}
           </button>
         ))}
       </div>
