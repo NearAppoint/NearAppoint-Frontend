@@ -11,7 +11,10 @@ import { NextResponse, type NextRequest } from 'next/server';
  * The real security is RLS + the server layer. This is the UX guard.
  */
 const BUSINESS_ROUTES = ['/today', '/calendar', '/customers', '/services', '/staff', '/settings'];
-const CUSTOMER_ROUTES = ['/home', '/search', '/bookings'];
+/* /b/* is a PUBLIC business profile — anyone can browse it without an account.
+   Only /bookings requires being signed in. Forcing a login before someone can
+   even LOOK is how you lose them. */
+const CUSTOMER_ROUTES = ['/home', '/bookings'];
 const ADMIN_ROUTES    = ['/admin'];
 const AUTH_ROUTES     = ['/login', '/signup'];
 
