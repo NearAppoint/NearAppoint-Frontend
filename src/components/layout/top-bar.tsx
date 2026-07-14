@@ -19,6 +19,10 @@ const TITLES: Record<string, string> = {
   '/settings/hours':         'Opening Hours',
   '/settings/special-hours': 'Special Hours',
   '/settings/profile':       'Business Profile',
+  '/reports':                'Reports',
+  '/settings/reminders':     'WhatsApp Reminders',
+  '/staff/schedules':        'Staff Schedules',
+  '/staff/leave':            'Leave',
 };
 
 export function TopBar({ ownerName, role = 'Owner' }: {
