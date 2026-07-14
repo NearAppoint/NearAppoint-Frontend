@@ -13,8 +13,8 @@ const NAV = [
   { href: '/today',     label: 'Today',     icon: LayoutDashboard },
   { href: '/calendar',  label: 'Calendar',  icon: CalendarDays, soon: true },
   { href: '/customers', label: 'Customers', icon: Users,        soon: true },
-  { href: '/services',  label: 'Services',  icon: Scissors,     soon: true },
-  { href: '/staff',     label: 'Staff',     icon: UserCog,      soon: true },
+  { href: '/services',  label: 'Services',  icon: Scissors },
+  { href: '/staff',     label: 'Staff',     icon: UserCog },
   { href: '/settings',  label: 'Settings',  icon: Settings,     soon: true },
 ];
 
