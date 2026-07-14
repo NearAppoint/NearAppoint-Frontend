@@ -110,6 +110,22 @@ export function CategoryCarousel({ active, onPick }: {
     setI((n + CATEGORIES.length) % CATEGORIES.length);
   };
 
+  /* Swipe. On a phone she will try it, and a carousel that ignores a swipe
+     feels broken in a way she can't articulate — she'll just stop using it. */
+  const touch = React.useRef<number | null>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touch.current = e.touches[0]!.clientX;
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touch.current === null) return;
+    const dx = e.changedTouches[0]!.clientX - touch.current;
+    touch.current = null;
+    if (Math.abs(dx) < 45) return;   // a tap, not a swipe
+    go(dx < 0 ? i + 1 : i - 1);
+  };
+
   const c = CATEGORIES[i]!;
   const Icon = c.icon;
 
@@ -118,87 +134,101 @@ export function CategoryCarousel({ active, onPick }: {
       <div
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
-        className="group relative overflow-hidden rounded-[18px] bg-warm-low sm:rounded-[22px]"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        className="group relative touch-pan-y select-none overflow-hidden rounded-[18px] bg-warm-low sm:rounded-[22px]"
       >
-        {/* Slides. All mounted, opacity-crossfaded — so the next banner is
-            already decoded and there is no flash of empty box. */}
-        <div className="relative aspect-[16/9] w-full sm:aspect-[3/1] sm:min-h-[240px]">
+        {/* Slides.
+            All mounted, opacity-crossfaded — the next banner is already decoded,
+            so there's no flash of empty box when it comes round. */}
+        <div className="relative aspect-[16/10] w-full sm:aspect-[16/6] lg:aspect-[3/1]">
           {CATEGORIES.map((cat, n) => (
-            <button
+            <div
               key={cat.slug}
-              onClick={() => onPick(active === cat.slug ? null : cat.slug)}
               aria-hidden={n !== i}
-              tabIndex={n === i ? 0 : -1}
               className={cn(
-                'absolute inset-0 cursor-pointer text-left transition-opacity duration-700',
+                'absolute inset-0 transition-opacity duration-700',
                 n === i ? 'opacity-100' : 'pointer-events-none opacity-0',
               )}
             >
-              {/* NO SCRIM. The banner is finished artwork — washing it out with a
-                  white gradient defeats the point of commissioning it. The text
-                  sits on its own solid panel instead, so the art stays intact. */}
+              {/*
+                THE ART IS NOT CROPPED.
+
+                object-cover chops the sides on a narrow screen — on mobile you
+                lose two-thirds of an illustration someone paid to have drawn.
+
+                object-contain shows ALL of it, letterboxed against the warm
+                background. The banner was composed as a whole; we show it as a
+                whole.
+              */}
               <Image
                 src={cat.banner}
                 alt=""
                 fill
                 priority={n === 0}
                 sizes="100vw"
-                className="object-cover"
+                className="object-contain object-right"
               />
-            </button>
+            </div>
           ))}
 
-          {/* The text sits on its OWN card, floating over the art. The banner
-              stays fully visible; the copy stays fully readable. Neither has to
-              compromise for the other. */}
-          <div className="pointer-events-none absolute inset-0 flex items-center p-4 sm:p-7">
-            <div className="pointer-events-auto max-w-[300px] rounded-[16px] bg-white/92 p-5 shadow-[0_6px_24px_rgba(88,66,55,.12)] backdrop-blur-sm sm:max-w-[340px] sm:p-6">
-              <span className="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-warm-low px-2.5 py-1 font-display text-[0.62rem] font-bold uppercase tracking-[0.08em] text-brand">
-                <Icon className="size-3" />
-                Book now
-              </span>
+          {/*
+            TEXT ON THE LEFT.
 
-              <h2 className="font-display text-[clamp(1.15rem,2.4vw,1.7rem)] font-extrabold leading-tight tracking-[-0.02em] text-warm-ink">
-                {c.name}
-              </h2>
+            The banners were drawn with the objects clustered right and the left
+            third quiet — so the copy sits in the space the art already leaves
+            for it, on the background, not on top of the illustration.
 
-              <p className="mt-1.5 text-[0.85rem] leading-snug text-warm-muted">
-                {c.tagline}
-              </p>
+            No card, no scrim, no blur. Nothing covering the artwork.
+          */}
+          <div className="absolute inset-y-0 left-0 flex w-[54%] flex-col justify-center pl-5 pr-2 sm:w-[46%] sm:pl-9 lg:w-[40%] lg:pl-12">
+            <span className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-2.5 py-1 font-display text-[0.58rem] font-bold uppercase tracking-[0.08em] text-brand shadow-sm sm:mb-3 sm:text-[0.64rem]">
+              <Icon className="size-3" />
+              Book now
+            </span>
 
-              <button
-                onClick={() => onPick(active === c.slug ? null : c.slug)}
-                className={cn(
-                  'mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-display text-[0.85rem] font-bold transition-colors',
-                  active === c.slug
-                    ? 'bg-warm-ink text-white'
-                    : 'bg-brand text-white hover:bg-brand-hover',
-                )}
-              >
-                {active === c.slug ? 'Showing these' : 'Explore'}
-              </button>
-            </div>
+            <h2 className="font-display text-[clamp(1rem,3.4vw,2rem)] font-extrabold leading-[1.1] tracking-[-0.02em] text-warm-ink">
+              {c.name}
+            </h2>
+
+            <p className="mt-1 max-w-[26ch] text-[clamp(0.68rem,1.5vw,0.92rem)] leading-snug text-warm-muted">
+              {c.tagline}
+            </p>
+
+            <button
+              onClick={() => onPick(active === c.slug ? null : c.slug)}
+              className={cn(
+                'mt-3 inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 font-display text-[0.75rem] font-bold transition-colors sm:mt-4 sm:px-5 sm:py-2.5 sm:text-[0.86rem]',
+                active === c.slug
+                  ? 'bg-warm-ink text-white'
+                  : 'bg-brand text-white shadow-brand hover:bg-brand-hover',
+              )}
+            >
+              {active === c.slug ? 'Showing these' : 'Explore'}
+            </button>
           </div>
         </div>
 
         {/* arrows — only on hover, on desktop */}
+        {/* Arrows are desktop-only. On mobile she swipes, and a button sitting
+            over the artwork would just be in the way. */}
         <button
           onClick={() => go(i - 1)}
           aria-label="Previous"
-          className="absolute left-3 top-1/2 hidden -translate-y-1/2 place-items-center rounded-full bg-white/90 p-2.5 text-warm-ink opacity-0 shadow transition-opacity hover:bg-white group-hover:opacity-100 sm:grid"
+          className="absolute left-3 top-1/2 hidden -translate-y-1/2 place-items-center rounded-full bg-white/95 p-2.5 text-warm-ink opacity-0 shadow-lg transition-opacity hover:bg-white group-hover:opacity-100 lg:grid"
         >
           <ChevronLeft className="size-4" />
         </button>
         <button
           onClick={() => go(i + 1)}
           aria-label="Next"
-          className="absolute right-3 top-1/2 hidden -translate-y-1/2 place-items-center rounded-full bg-white/90 p-2.5 text-warm-ink opacity-0 shadow transition-opacity hover:bg-white group-hover:opacity-100 sm:grid"
+          className="absolute right-3 top-1/2 hidden -translate-y-1/2 place-items-center rounded-full bg-white/95 p-2.5 text-warm-ink opacity-0 shadow-lg transition-opacity hover:bg-white group-hover:opacity-100 lg:grid"
         >
           <ChevronRight className="size-4" />
         </button>
 
         {/* dots */}
-        <div className="absolute bottom-4 right-5 flex gap-1.5">
+        <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5 sm:bottom-4 sm:left-auto sm:right-5 sm:translate-x-0">
           {CATEGORIES.map((cat, n) => (
             <button
               key={cat.slug}
