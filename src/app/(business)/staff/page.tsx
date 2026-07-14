@@ -117,22 +117,38 @@ function StaffRow({ member, groups, onDone }: {
   const initials = member.full_name.split(' ').map(w => w[0]).slice(0, 2).join('');
 
   return (
-    <div className="flex flex-wrap items-center gap-3.5 p-4">
-      <span className="grid size-10 flex-none place-items-center rounded-full bg-brand-tint font-display text-[0.8rem] font-bold text-brand">
+    <div className="flex flex-wrap items-center gap-4 px-5 py-4">
+      <span className="grid size-11 flex-none place-items-center rounded-full bg-brand-tint font-display text-[0.82rem] font-bold text-brand">
         {initials}
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="font-display text-[0.95rem] font-bold text-ink">{member.full_name}</p>
-        <p className="tnum mt-0.5 font-mono text-[0.78rem] text-muted">
+        <p className="font-display text-[0.98rem] font-bold text-ink">{member.full_name}</p>
+        <p className="tnum mt-0.5 font-mono text-[0.8rem] text-muted">
           {member.phone.replace('+92', '0')}
         </p>
-        <p className="mt-1 text-[0.78rem] leading-relaxed text-faint">
-          {names.length === 0
-            ? <span className="text-brand">No services assigned — can&apos;t be booked</span>
-            : names.length <= 3 ? names.join(' · ')
-            : `${names.slice(0, 3).join(' · ')} +${names.length - 3} more`}
-        </p>
+
+        {names.length === 0 ? (
+          /* She can't be booked for anything. Say so, plainly, in orange — this
+             is a broken staff record and it will silently produce zero bookings. */
+          <p className="mt-1.5 text-[0.8rem] font-semibold text-brand">
+            No services assigned — can&apos;t be booked
+          </p>
+        ) : (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {names.slice(0, 3).map(n => (
+              <span key={n}
+                className="rounded bg-soft px-2 py-0.5 text-[0.72rem] font-medium text-muted">
+                {n}
+              </span>
+            ))}
+            {names.length > 3 && (
+              <span className="rounded bg-soft px-2 py-0.5 text-[0.72rem] font-medium text-faint">
+                +{names.length - 3} more
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-1.5">

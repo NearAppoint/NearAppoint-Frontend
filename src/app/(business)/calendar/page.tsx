@@ -128,14 +128,29 @@ export default function CalendarPage() {
         <div className="overflow-x-auto rounded-lg border border-line bg-white">
           <div className="min-w-[640px]">
             {/* header */}
-            <div className="sticky top-0 z-10 flex border-b border-line bg-soft/60">
+            {/* Staff columns with avatars and a booked count — she sees at a
+                glance who is loaded and who is free, before reading a single block. */}
+            <div className="sticky top-0 z-10 flex border-b border-line bg-white">
               <div className="w-[62px] flex-none border-r border-line" />
-              {staff.map(s => (
-                <div key={s.id}
-                  className="flex-1 border-r border-line px-3 py-3.5 text-center font-display text-[0.72rem] font-bold uppercase tracking-[0.08em] text-faint last:border-r-0">
-                  {s.full_name}
-                </div>
-              ))}
+              {staff.map(s => {
+                const booked = items.filter(a => a.staff_id === s.id).length;
+                return (
+                  <div key={s.id}
+                    className="flex flex-1 items-center justify-center gap-2.5 border-r border-line px-3 py-3.5 last:border-r-0">
+                    <span className="grid size-8 flex-none place-items-center rounded-full bg-brand-tint font-display text-[0.7rem] font-bold text-brand">
+                      {s.full_name.charAt(0).toUpperCase()}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-display text-[0.92rem] font-bold text-ink">
+                        {s.full_name}
+                      </p>
+                      <p className="tnum text-[0.7rem] text-faint">
+                        {booked} booked
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* body */}

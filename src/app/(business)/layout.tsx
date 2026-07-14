@@ -3,6 +3,7 @@ import { createClient } from '@/server/supabase-server';
 import { AccountService } from '@/server/services/account.service';
 import { db } from '@/server/database/client';
 import { BusinessSidebar } from '@/components/layout/business-sidebar';
+import { TopBar } from '@/components/layout/top-bar';
 
 export default async function BusinessLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -23,6 +24,7 @@ export default async function BusinessLayout({ children }: { children: React.Rea
   return (
     <div className="min-h-screen bg-soft lg:pl-[260px]">
       <BusinessSidebar businessName={business?.display_name ?? 'Your business'} />
+      <TopBar ownerName={account.fullName ?? 'Owner'} />
       <main className="p-5 lg:p-9">{children}</main>
     </div>
   );

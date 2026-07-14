@@ -127,21 +127,18 @@ export default function TodayPage() {
             </Card>
           ) : (
             <div className="space-y-5">
+              {/* Section strips live INSIDE the card, like the design. One object,
+                  not a floating label above a list. */}
               {active.length > 0 && (
-                <Panel>
+                <Panel header="Current & Upcoming">
                   {active.map(i => <Row key={i.id} item={i} onDone={load} />)}
                 </Panel>
               )}
 
               {done.length > 0 && (
-                <div>
-                  <p className="mb-2.5 px-1 font-display text-[0.7rem] font-bold uppercase tracking-[0.1em] text-faint">
-                    Finished
-                  </p>
-                  <Panel>
-                    {done.map(i => <Row key={i.id} item={i} onDone={load} />)}
-                  </Panel>
-                </div>
+                <Panel header="Finished">
+                  {done.map(i => <Row key={i.id} item={i} onDone={load} />)}
+                </Panel>
               )}
             </div>
           )}
@@ -176,36 +173,55 @@ function Row({ item, onDone }: { item: Item; onDone: () => Promise<void> }) {
   const live = item.status === 'in_progress';
 
   return (
-    <div className={cn('flex flex-wrap items-center gap-3.5 p-4', done && 'opacity-55')}>
-      <span className="tnum w-[70px] flex-none font-mono text-[0.8rem] text-muted">{time}</span>
+    <div className={cn('flex flex-wrap items-center gap-4 px-5 py-4', done && 'bg-soft/50')}>
+      {/* Time in ORANGE for live rows. Her eye goes to "what's next", and the
+          colour does that work without her reading anything. */}
+      <span className={cn(
+        'tnum w-[76px] flex-none font-mono text-[0.82rem] font-medium',
+        done ? 'text-faint' : live ? 'text-brand' : 'text-brand',
+      )}>
+        {time}
+      </span>
 
       <div className="min-w-0 flex-1">
-        <p className={cn(
-          'font-display text-[0.95rem] font-bold text-ink',
-          done && 'line-through',
-        )}>
-          {item.customer_name}
-        </p>
-        <p className="truncate text-[0.8rem] text-muted">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className={cn(
+            'font-display text-[0.95rem] font-bold',
+            done ? 'text-faint line-through' : 'text-ink',
+          )}>
+            {item.customer_name}
+          </p>
+          {live && (
+            <span className="rounded bg-blue-100 px-1.5 py-0.5 font-display text-[0.55rem] font-bold uppercase tracking-wide text-blue-700">
+              In progress
+            </span>
+          )}
+          {done && <Tag tone="ok">Done</Tag>}
+        </div>
+        <p className="truncate text-[0.82rem] text-muted">
           {item.services.join(', ')}
-          {item.staff_name && <span className="text-faint"> · {item.staff_name}</span>}
+          {item.staff_name && <span> &bull; Stylist: {item.staff_name}</span>}
         </p>
       </div>
 
-      <span className="tnum font-display text-[0.9rem] font-bold text-ink">
+      <span className={cn(
+        'tnum font-mono text-[0.9rem] font-semibold',
+        done ? 'text-faint' : 'text-ink',
+      )}>
         {formatPKR(item.total)}
       </span>
 
       {done ? (
-        <Tag tone="ok"><Check className="size-3" strokeWidth={3} /> Done</Tag>
+        <Check className="size-5 flex-none text-ok" strokeWidth={2.5} />
       ) : live ? (
-        <Button size="sm" loading={busy} onClick={() => void advance('completed')}>
+        <Button size="sm" variant="dark" loading={busy}
+          className="w-[104px]" onClick={() => void advance('completed')}>
           Complete
         </Button>
       ) : (
-        <Button size="sm" variant="secondary" loading={busy}
+        <Button size="sm" loading={busy} className="w-[104px]"
           onClick={() => void advance('in_progress')}>
-          <CircleDot className="size-3.5" /> Start
+          Start
         </Button>
       )}
     </div>

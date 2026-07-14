@@ -119,23 +119,28 @@ function GroupCard({ group, onDone }: { group: Group; onDone: () => Promise<void
     await onDone();
   };
 
+  /* The group header is a grey strip INSIDE the card, not a heading above it.
+     It reads as one object — a section of her menu — rather than a floating
+     label with a list underneath. */
   return (
-    <div>
-      <div className="mb-2.5 flex items-center justify-between gap-3 px-1">
-        <h2 className="text-[1.1rem]">{group.name}</h2>
+    <div className="overflow-hidden rounded-lg border border-line bg-white">
+      <div className="flex items-center justify-between gap-3 border-b border-line bg-soft/70 px-5 py-3.5">
+        <h2 className="font-display text-[1rem] font-bold tracking-tight text-ink">
+          {group.name}
+        </h2>
         {group.id !== 'ungrouped' && (
           <button onClick={() => void del()}
-            className="text-[0.8rem] font-semibold text-faint transition-colors hover:text-bad">
+            className="font-display text-[0.65rem] font-bold uppercase tracking-[0.1em] text-faint transition-colors hover:text-bad">
             Delete group
           </button>
         )}
       </div>
 
-      <Panel>
+      <div className="divide-y divide-line">
         {group.services.map(s => (
           <ServiceRow key={s.id} service={s} onDone={onDone} />
         ))}
-      </Panel>
+      </div>
     </div>
   );
 }
@@ -170,8 +175,15 @@ function ServiceRow({ service, onDone }: { service: Service; onDone: () => Promi
 
   const consultOnly = service.booking_policy === 'consultation_only';
 
+  const unpriced = service.price === null;
+
   return (
-    <div className="flex flex-wrap items-center gap-3 p-4">
+    <div className={cn(
+      'flex flex-wrap items-center gap-3 px-5 py-4 transition-colors',
+      /* Unpriced rows are tinted. Across a long menu she can see instantly what
+         still needs her attention, without counting. */
+      unpriced && 'bg-brand-tint2/60',
+    )}>
       <div className="min-w-0 flex-1">
         <p className="font-display text-[0.95rem] font-bold text-ink">{service.name}</p>
         <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.8rem] text-muted">
@@ -198,21 +210,26 @@ function ServiceRow({ service, onDone }: { service: Service; onDone: () => Promi
 
       <div className="flex items-center gap-2">
         <div className={cn(
-          'flex items-center overflow-hidden rounded-sm border bg-white transition-colors',
-          saved ? 'border-ok' : service.price === null ? 'border-brand' : 'border-line2',
+          'flex items-center overflow-hidden rounded-sm border transition-colors',
+          saved ? 'border-ok bg-white'
+                : unpriced ? 'border-brand bg-white'
+                           : 'border-line2 bg-white',
           'focus-within:border-brand focus-within:ring-[3px] focus-within:ring-brand/15',
         )}>
-          <span className="flex-none border-r border-line2 bg-soft px-2.5 py-2 font-mono text-[0.78rem] text-muted">
+          <span className="flex-none border-r border-line2 bg-soft px-3 py-2.5 font-mono text-[0.8rem] text-muted">
             Rs
           </span>
           <input
             type="number" inputMode="numeric" min={0}
             value={price}
-            placeholder="—"
+            placeholder="Set price"
             onChange={(e) => setPrice(e.target.value)}
             onBlur={() => void savePrice()}
             onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            className="tnum w-[86px] border-0 bg-transparent px-2.5 py-2 text-right font-mono text-[0.9rem] text-ink placeholder:text-faint focus:outline-none"
+            className={cn(
+              'tnum w-[110px] border-0 bg-transparent px-3 py-2.5 font-mono text-[0.9rem] text-ink focus:outline-none',
+              unpriced ? 'text-left placeholder:text-brand/60' : 'text-right',
+            )}
           />
         </div>
 

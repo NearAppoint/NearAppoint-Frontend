@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { Plus, AlertCircle, Check, Loader2, User } from 'lucide-react';
+import { Plus, AlertCircle, Check, Loader2, User, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 import { formatAsTyped, digitsOnly, isValidPkMobile } from '@/lib/phone';
@@ -152,8 +152,8 @@ function WalkInForm({ groups, staff, onDone }: {
 
         {/* ---- 1. Phone. Autofocused, numeric, no country picker. ---- */}
         <div>
-          <label className="mb-2 block font-display text-[0.85rem] font-bold">
-            Phone number <span className="font-normal text-faint">— optional</span>
+          <label className="mb-2 block font-display text-[0.68rem] font-bold uppercase tracking-[0.1em] text-faint">
+            Customer phone
           </label>
           <div className="flex items-center overflow-hidden rounded-sm border border-line2 bg-white focus-within:border-brand focus-within:ring-[3px] focus-within:ring-brand/15">
             <span className="flex-none border-r border-line2 bg-soft px-3.5 py-3 font-mono text-[0.9rem] text-ink">
@@ -207,39 +207,40 @@ function WalkInForm({ groups, staff, onDone }: {
 
         {/* ---- 2. Services. Chips, not a dropdown. Tap, don't scroll. ---- */}
         <div>
-          <label className="mb-2 block font-display text-[0.85rem] font-bold">
-            What are they having?
-          </label>
-          <div className="space-y-3">
+          <div className="mb-2.5 flex items-center justify-between">
+            <label className="font-display text-[0.68rem] font-bold uppercase tracking-[0.1em] text-faint">
+              What are they having?
+            </label>
+          </div>
+          <div className="space-y-2">
             {groups.filter(g => g.services.length > 0).map(g => (
-              <div key={g.id}>
-                <p className="mb-1.5 font-display text-[0.7rem] font-bold uppercase tracking-wider text-faint">
-                  {g.name}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {g.services.map(s => {
-                    const on = picked.includes(s.id);
-                    const n = picked.indexOf(s.id) + 1;
-                    return (
-                      <button key={s.id} type="button" onClick={() => toggle(s.id)}
-                        className={cn(
-                          'inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[0.86rem] transition-all',
-                          on ? 'border-brand bg-brand-tint font-semibold text-ink'
-                             : 'border-line2 bg-white text-muted hover:border-faint',
-                        )}>
-                        {on && picked.length > 1 && (
-                          <span className="grid size-4 place-items-center rounded-full bg-brand font-mono text-[0.6rem] font-bold text-white">
-                            {n}
-                          </span>
-                        )}
-                        {s.name}
-                        <span className="tnum text-[0.72rem] text-faint">
-                          {s.duration_minutes}m
+              <div key={g.id} className="flex flex-wrap items-center gap-1.5">
+                <span className="mr-0.5 flex-none rounded bg-soft px-2 py-1.5 font-display text-[0.58rem] font-bold uppercase tracking-[0.08em] text-faint">
+                  {g.name.split(' ')[0]}
+                </span>
+                {g.services.map(s => {
+                  const on = picked.includes(s.id);
+                  const n = picked.indexOf(s.id) + 1;
+                  return (
+                    <button key={s.id} type="button" onClick={() => toggle(s.id)}
+                      className={cn(
+                        'relative inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-[0.86rem] transition-all',
+                        on ? 'border-brand bg-brand font-semibold text-white'
+                           : 'border-line2 bg-white text-ink hover:border-faint',
+                      )}>
+                      {on && picked.length > 1 && (
+                        <span className="absolute -right-1 -top-1 grid size-[18px] place-items-center rounded-full bg-ink font-mono text-[0.56rem] font-bold text-white">
+                          {n}
                         </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                      )}
+                      {s.name}
+                      <span className={cn('tnum font-mono text-[0.7rem]',
+                        on ? 'text-white/70' : 'text-faint')}>
+                        {s.duration_minutes}m
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             ))}
           </div>
@@ -247,7 +248,7 @@ function WalkInForm({ groups, staff, onDone }: {
 
         {/* ---- 3. Who. She picks. She's standing there; she knows who's free. ---- */}
         <div>
-          <label className="mb-2 block font-display text-[0.85rem] font-bold">
+          <label className="mb-2.5 block font-display text-[0.68rem] font-bold uppercase tracking-[0.1em] text-faint">
             Who will do it?
           </label>
 
@@ -259,20 +260,40 @@ function WalkInForm({ groups, staff, onDone }: {
                 : 'No bookable staff yet. Add someone in Staff first.'}
             </div>
           ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {eligible.map(s => (
-                <button key={s.id} type="button" onClick={() => setStaffId(s.id)}
-                  className={cn(
-                    'inline-flex items-center gap-2 rounded-sm border px-3.5 py-2.5 text-[0.9rem] transition-all',
-                    staffId === s.id
-                      ? 'border-brand bg-brand-tint font-semibold text-ink'
-                      : 'border-line2 bg-white text-muted hover:border-faint',
-                  )}>
-                  <User className="size-3.5" />
-                  {s.full_name}
-                  {staffId === s.id && <Check className="size-3.5 text-brand" strokeWidth={3} />}
-                </button>
-              ))}
+            /* Cards, not chips. She needs to know WHO IS FREE RIGHT NOW — that's
+               the whole decision she's making, with a customer standing there. */
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {eligible.map(s => {
+                const on = staffId === s.id;
+                return (
+                  <button key={s.id} type="button" onClick={() => setStaffId(s.id)}
+                    className={cn(
+                      'relative flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-all',
+                      on ? 'border-brand bg-white ring-[3px] ring-brand/15'
+                         : 'border-line2 bg-white hover:border-faint',
+                    )}>
+                    <span className={cn(
+                      'grid size-9 flex-none place-items-center rounded-full font-display text-[0.72rem] font-bold',
+                      on ? 'bg-brand-tint text-brand' : 'bg-soft text-muted',
+                    )}>
+                      {s.full_name.charAt(0).toUpperCase()}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-display text-[0.87rem] font-bold text-ink">
+                        {s.full_name}
+                      </p>
+                      <p className="font-display text-[0.6rem] font-bold uppercase tracking-wide text-ok">
+                        Available
+                      </p>
+                    </div>
+                    {on && (
+                      <span className="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-brand text-white">
+                        <Check className="size-3" strokeWidth={3.5} />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -287,13 +308,20 @@ function WalkInForm({ groups, staff, onDone }: {
       {/* ---- Footer: what she's about to commit to ---- */}
       <div className="mt-5 border-t border-line pt-5">
         {picked.length > 0 && (
-          <div className="mb-3.5 flex items-center justify-between text-[0.88rem]">
-            <span className="tnum text-muted">
-              {minutes} min
-              {/* Buffer is NOT shown. It blocks her calendar, but it is not
-                  time the customer is in the chair, and quoting it would be a lie. */}
+          <div className="mb-4 flex items-center justify-between rounded-lg bg-soft px-4 py-3">
+            {/* Buffer is NOT shown here. It blocks her calendar, but it is not
+                time the customer is in the chair — quoting it would be a lie. */}
+            <span className="tnum inline-flex items-center gap-1.5 font-mono text-[0.95rem] font-medium text-ink">
+              <Clock className="size-4 text-brand" /> {minutes} min
             </span>
-            <span className="tnum font-display font-bold text-ink">{formatPKR(total)}</span>
+            <div className="text-right">
+              <p className="font-display text-[0.58rem] font-bold uppercase tracking-[0.1em] text-faint">
+                Total amount
+              </p>
+              <p className="tnum font-mono text-[1.15rem] font-bold text-ink">
+                {formatPKR(total)}
+              </p>
+            </div>
           </div>
         )}
 
