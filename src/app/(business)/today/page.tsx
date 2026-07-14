@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { WalkInDialog } from '@/components/business/walk-in-dialog';
 import { BookingDialog } from '@/components/business/booking-dialog';
+import { AppointmentActions } from '@/components/business/appointment-actions';
 import { PageHeader } from '@/components/business/page-header';
 import { StatCard } from '@/components/business/stat-card';
 import { Panel, Callout, Tag } from '@/components/business/panel';
@@ -16,8 +17,9 @@ import { cn } from '@/lib/utils';
 
 interface Item {
   id: string; reference: string; status: string;
-  customer_name: string; staff_name: string | null;
-  services: string[]; start_at: string; end_at: string;
+  customer_name: string; staff_name: string | null; staff_id: string | null;
+  services: string[]; service_ids: string[];
+  start_at: string; end_at: string;
   total: number; source: string;
 }
 interface Staff { id: string; full_name: string; service_ids: string[]; is_bookable: boolean }
@@ -131,13 +133,13 @@ export default function TodayPage() {
                   not a floating label above a list. */}
               {active.length > 0 && (
                 <Panel header="Current & Upcoming">
-                  {active.map(i => <Row key={i.id} item={i} onDone={load} />)}
+                  {active.map(i => <Row key={i.id} item={i} staff={staff} onDone={load} />)}
                 </Panel>
               )}
 
               {done.length > 0 && (
                 <Panel header="Finished">
-                  {done.map(i => <Row key={i.id} item={i} onDone={load} />)}
+                  {done.map(i => <Row key={i.id} item={i} staff={staff} onDone={load} />)}
                 </Panel>
               )}
             </div>
@@ -148,19 +150,24 @@ export default function TodayPage() {
   );
 }
 
-function Row({ item, onDone }: { item: Item; onDone: () => Promise<void> }) {
+function Row({ item, staff, onDone }: {
+  item: Item; staff: Staff[]; onDone: () => Promise<void>;
+}) {
   const [busy, setBusy] = React.useState(false);
 
   const advance = async (status: string) => {
     setBusy(true);
-    await fetch(`/api/v1/appointments/${item.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        status,
-        final_amount: status === 'completed' ? item.total : undefined,
-      }),
-    });
+    if (status === 'completed') {
+      // Straight complete at the quoted price. To adjust the bill she uses the
+      // ⋯ menu, which asks what they actually paid.
+      await fetch(`/api/v1/appointments/${item.id}/complete`, { method: 'POST' });
+    } else {
+      await fetch(`/api/v1/appointments/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+    }
     setBusy(false);
     await onDone();
   };
@@ -224,6 +231,10 @@ function Row({ item, onDone }: { item: Item; onDone: () => Promise<void> }) {
           Start
         </Button>
       )}
+
+      {/* No-show, cancel, reschedule, reopen. Without this, a customer who
+          doesn't turn up leaves the chair blocked for the rest of the day. */}
+      <AppointmentActions appt={item} staff={staff} onDone={onDone} />
     </div>
   );
 }

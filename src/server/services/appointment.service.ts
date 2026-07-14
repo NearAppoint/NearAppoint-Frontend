@@ -28,6 +28,9 @@ export interface CalendarItem {
   staff_id: string | null;
   staff_name: string | null;
   services: string[];
+  /** Needed by reschedule: availability must be asked for the SAME services,
+      or the new slot won't be long enough and the constraint will refuse it. */
+  service_ids: string[];
   start_at: string;      // what the customer sees
   end_at: string;
   occupies_end_at: string;   // includes buffer — SHE sees this, the customer never does
@@ -48,8 +51,8 @@ export class AppointmentService {
       .select(`
         id, reference, status, source, total, time_range,
         business_customers ( full_name, phone ),
-        appointment_items ( service_name, occupies_range, service_range, staff_id,
-                            staff ( full_name ) )
+        appointment_items ( service_id, service_name, occupies_range, service_range,
+                            staff_id, staff ( full_name ) )
       `)
       .eq('branch_id', branchId)
       .not('status', 'in', '(cancelled_by_customer,cancelled_by_business,expired,no_show)')
@@ -76,6 +79,7 @@ export class AppointmentService {
         staff_id: first?.staff_id ?? null,
         staff_name: first?.staff?.full_name ?? null,
         services: items.map((i: any) => i.service_name),
+        service_ids: items.map((i: any) => i.service_id),
         start_at: min(starts),
         end_at: max(svcEnds),
         occupies_end_at: max(occEnds),

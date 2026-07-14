@@ -4,13 +4,15 @@ import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WalkInDialog } from '@/components/business/walk-in-dialog';
 import { BookingDialog } from '@/components/business/booking-dialog';
+import { AppointmentActions } from '@/components/business/appointment-actions';
 import { Panel } from '@/components/business/panel';
 import { cn } from '@/lib/utils';
 
 interface Item {
   id: string; reference: string; status: string;
   customer_name: string; staff_id: string | null; staff_name: string | null;
-  services: string[]; start_at: string; end_at: string; occupies_end_at: string;
+  services: string[]; service_ids: string[];
+  start_at: string; end_at: string; occupies_end_at: string;
   total: number; source: string;
 }
 interface Staff { id: string; full_name: string; service_ids: string[]; is_bookable: boolean }
@@ -188,7 +190,8 @@ export default function CalendarPage() {
                   ))}
 
                   {items.filter(a => a.staff_id === s.id).map(a => (
-                    <AppointmentBlock key={a.id} item={a} openMin={openMin} onDone={load} />
+                    <AppointmentBlock key={a.id} item={a} openMin={openMin}
+                      staff={staff} onDone={load} />
                   ))}
                 </div>
               ))}
@@ -210,8 +213,8 @@ export default function CalendarPage() {
   );
 }
 
-function AppointmentBlock({ item, openMin, onDone }: {
-  item: Item; openMin: number; onDone: () => Promise<void>;
+function AppointmentBlock({ item, openMin, staff, onDone }: {
+  item: Item; openMin: number; staff: Staff[]; onDone: () => Promise<void>;
 }) {
   const [busy, setBusy] = React.useState(false);
 
@@ -223,11 +226,15 @@ function AppointmentBlock({ item, openMin, onDone }: {
 
   const advance = async (status: string) => {
     setBusy(true);
-    await fetch(`/api/v1/appointments/${item.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, final_amount: status === 'completed' ? item.total : undefined }),
-    });
+    if (status === 'completed') {
+      await fetch(`/api/v1/appointments/${item.id}/complete`, { method: 'POST' });
+    } else {
+      await fetch(`/api/v1/appointments/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+    }
     setBusy(false);
     await onDone();
   };
@@ -263,6 +270,12 @@ function AppointmentBlock({ item, openMin, onDone }: {
           style={{ height: (occMin - endMin) * PX_PER_MIN }}
         />
       )}
+
+      {/* Actions live in the corner, always reachable. She needs to mark a
+          no-show from the calendar, not just from Today. */}
+      <div className="absolute right-0.5 top-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+        <AppointmentActions appt={item} staff={staff} onDone={onDone} compact />
+      </div>
 
       {!done && (
         <div className="absolute inset-x-1 bottom-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
