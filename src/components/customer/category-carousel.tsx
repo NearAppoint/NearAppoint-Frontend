@@ -141,7 +141,7 @@ export function CategoryCarousel({ active, onPick }: {
         {/* Slides.
             All mounted, opacity-crossfaded — the next banner is already decoded,
             so there's no flash of empty box when it comes round. */}
-        <div className="relative aspect-[16/10] w-full sm:aspect-[16/6] lg:aspect-[3/1]">
+        <div className="relative aspect-[2/1] w-full sm:aspect-[5/2] lg:aspect-[3/1]">
           {CATEGORIES.map((cat, n) => (
             <div
               key={cat.slug}
@@ -152,14 +152,17 @@ export function CategoryCarousel({ active, onPick }: {
               )}
             >
               {/*
-                THE ART IS NOT CROPPED.
+                COVER, ANCHORED LEFT. No letterbox, no cream bars.
 
-                object-cover chops the sides on a narrow screen — on mobile you
-                lose two-thirds of an illustration someone paid to have drawn.
+                The banner is 3:1. The mobile slot is 16:10. Something has to
+                give, and the honest choice is to crop the RIGHT edge — because
+                the art is composed with its objects on the right and its quiet
+                zone on the left, which is exactly where the text sits.
 
-                object-contain shows ALL of it, letterboxed against the warm
-                background. The banner was composed as a whole; we show it as a
-                whole.
+                object-contain would show every pixel, but it letterboxes: cream
+                bars top and bottom that make the banner look like a mistake.
+                A slightly cropped banner reads as a design; a letterboxed one
+                reads as a bug.
               */}
               <Image
                 src={cat.banner}
@@ -167,7 +170,7 @@ export function CategoryCarousel({ active, onPick }: {
                 fill
                 priority={n === 0}
                 sizes="100vw"
-                className="object-contain object-right"
+                className="object-cover object-left"
               />
             </div>
           ))}
@@ -228,15 +231,15 @@ export function CategoryCarousel({ active, onPick }: {
         </button>
 
         {/* dots */}
-        <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5 sm:bottom-4 sm:left-auto sm:right-5 sm:translate-x-0">
+        <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 sm:bottom-4 sm:left-auto sm:right-5 sm:translate-x-0">
           {CATEGORIES.map((cat, n) => (
             <button
               key={cat.slug}
               onClick={() => go(n)}
               aria-label={cat.name}
               className={cn(
-                'h-1.5 rounded-full transition-all',
-                n === i ? 'w-6 bg-brand' : 'w-1.5 bg-warm-faint/40 hover:bg-warm-faint',
+                'h-1.5 rounded-full shadow-sm transition-all',
+                n === i ? 'w-6 bg-brand' : 'w-1.5 bg-white/70 hover:bg-white',
               )}
             />
           ))}

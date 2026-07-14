@@ -77,27 +77,30 @@ export function CustomerNav({
 
   return (
     <nav className="sticky top-0 z-50 border-b border-warm-line/50 bg-warm/90 backdrop-blur-xl">
-      <div className="container flex h-[68px] items-center gap-3 sm:gap-5">
+      <div className="container flex h-[62px] items-center gap-2 sm:h-[68px] sm:gap-5">
 
-        {/* ---- logo ---- */}
-        <Link href="/home" className="flex flex-none items-center gap-2" aria-label="NearAppoint">
-          <Image src="/assets/logo-mark.svg" alt="" width={28} height={28}
-            className="h-7 w-auto sm:h-[30px]" priority />
-          <span className="hidden whitespace-nowrap font-display text-[1.1rem] font-extrabold leading-none tracking-[-0.035em] text-warm-ink sm:inline">
+        {/* ---- logo ----
+             The NAME is always visible, even on the narrowest phone. A bare mark
+             with no wordmark is a logo she doesn't recognise yet — we're too new
+             for that. It just shrinks. */}
+        <Link href="/home" className="flex flex-none items-center gap-1.5" aria-label="NearAppoint">
+          <Image src="/assets/logo-mark.svg" alt="" width={26} height={26}
+            className="h-[24px] w-auto sm:h-[29px]" priority />
+          <span className="whitespace-nowrap font-display text-[0.88rem] font-extrabold leading-none tracking-[-0.035em] text-warm-ink sm:text-[1.1rem]">
             Near<span className="text-brand">Appoint</span>
           </span>
         </Link>
 
         {/* ---- SEARCH. The centre of gravity. ---- */}
         <form onSubmit={submit} className="min-w-0 flex-1">
-          <div className="mx-auto flex max-w-[560px] items-center gap-2 rounded-full border border-warm-line bg-white px-3.5 py-2 transition-all focus-within:border-brand focus-within:shadow-[0_2px_14px_rgba(249,115,22,.14)] sm:px-4 sm:py-2.5">
+          <div className="mx-auto flex max-w-[420px] items-center gap-2 rounded-full border border-warm-line bg-white px-3 py-2 transition-all focus-within:border-brand focus-within:shadow-[0_2px_14px_rgba(249,115,22,.14)] sm:px-4 sm:py-2.5">
             <Search className="size-[17px] flex-none text-warm-faint" />
 
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search businesses or a service"
-              className="min-w-0 flex-1 border-0 bg-transparent text-[0.9rem] text-warm-ink placeholder:text-warm-faint focus:outline-none"
+              placeholder="Search"
+              className="min-w-0 flex-1 border-0 bg-transparent text-[0.86rem] text-warm-ink placeholder:text-warm-faint focus:outline-none sm:text-[0.9rem]"
             />
 
             {/* Filters live here — the Foodpanda pattern. Wired when the
