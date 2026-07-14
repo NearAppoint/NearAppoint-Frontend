@@ -104,7 +104,7 @@ function HomeInner() {
         ) : results.length === 0 ? (
           <div className="rounded-[20px] border border-warm-line/60 bg-white p-10 text-center sm:p-14">
             <h2 className="mb-3 font-display text-[1.4rem] font-extrabold tracking-tight text-warm-ink">
-              {q || cat ? 'Nothing matched that.' : 'We\u2019re just getting started in Lahore.'}
+              {q || cat ? 'Nothing matched that.' : 'We\u2019re just getting started.'}
             </h2>
             <p className="mx-auto max-w-[46ch] text-[0.96rem] leading-relaxed text-warm-muted">
               {q || cat
@@ -124,7 +124,7 @@ function HomeInner() {
               <p className="text-[0.92rem] text-warm-muted">
                 <b className="tnum font-display font-bold text-warm-ink">{results.length}</b>
                 {' '}{results.length === 1 ? 'place' : 'places'}
-                {coords ? ' near you' : ' in Lahore'}
+                {coords ? ' near you' : ''}
               </p>
 
               {/* Sort and filters land here next — the Foodpanda rail. */}

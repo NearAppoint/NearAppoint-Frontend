@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     }
 
     const results = await PublicService.search({
-      city: q.get('city') ?? 'Lahore',
+      city: q.get('city') ?? undefined,
       query: q.get('q') ?? undefined,
       category: q.get('category') ?? undefined,
       gender,

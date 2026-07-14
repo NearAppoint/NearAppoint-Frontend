@@ -80,7 +80,7 @@ export const FAQS = [
   { q: 'How are no-shows reduced?',
     a: 'Every booking triggers automatic WhatsApp reminders — one the day before, and one two hours before with a "still coming?" button. Customers who can\'t make it tell you while there\'s still time to fill the slot.' },
   { q: 'Which cities is NearAppoint available in?',
-    a: 'We\'re launching in Lahore first, with Karachi and Islamabad next. If we\'re not in your city yet, register anyway — we\'ll let you know the moment we arrive.' },
+    a: 'We\'re rolling out city by city across Pakistan. If we\'re not in yours yet, register anyway — we\'ll let you know the moment we arrive.' },
   { q: 'How does NearAppoint verify businesses?',
     a: 'Every business submits owner ID and a photo of the premises. Our team reviews each one within 24 hours. Only verified businesses appear in customer search — that\'s what the badge means.' },
   { q: 'Can I manage multiple branches?',
@@ -104,7 +104,7 @@ export const FAQS = [
  */
 export const TESTIMONIALS = [
   { quote: 'I used to spend 20 minutes calling salons on a Friday. Now I open NearAppoint, pick a time, and done. Absolute game-changer for women in Pakistan.',
-    name: 'Fatima Malik', role: 'Customer, Lahore', badge: 'Customer', color: '#EC4899' },
+    name: 'Fatima Malik', role: 'Customer', badge: 'Customer', color: '#EC4899' },
   { quote: 'Since joining NearAppoint, our no-shows dropped and we added 40 new clients in the first month. The dashboard is incredibly easy to use.',
     name: 'Zara Khan', role: 'Owner, Pearl Beauty Parlor', badge: 'Business', color: '#0F2140' },
   { quote: 'I found an amazing dentist near my office in under 2 minutes. The reviews helped me choose, and the reminder meant I didn\'t forget.',

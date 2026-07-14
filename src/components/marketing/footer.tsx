@@ -62,7 +62,7 @@ export function Footer() {
         </div>
 
         <div className="flex flex-wrap justify-between gap-4 border-t border-line pt-5.5 text-[0.84rem] text-faint">
-          <span>© 2026 NearAppoint. All rights reserved. Made in Lahore, Pakistan.</span>
+          <span>© {new Date().getFullYear()} NearAppoint. All rights reserved.</span>
           <nav className="flex gap-5">
             <Link href="/privacy" className="hover:text-brand">Privacy</Link>
             <Link href="/terms" className="hover:text-brand">Terms</Link>

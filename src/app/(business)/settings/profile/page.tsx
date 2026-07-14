@@ -233,7 +233,7 @@ export default function ProfilePage() {
                 onBlur={(e) => save({ landmark: e.target.value })}
               />
               <p className="mt-2 text-[0.79rem] leading-relaxed text-muted">
-                Street addresses don&apos;t get customers to your door in Lahore.
+                Street addresses don&apos;t get customers to your door in Pakistan.
                 Landmarks do. This is the first thing they&apos;ll see.
               </p>
             </div>

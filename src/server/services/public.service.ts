@@ -37,7 +37,11 @@ export class PublicService {
     lat?: number | null; lng?: number | null;
   }): Promise<BusinessCard[]> {
     const { data, error } = await db().rpc('search_businesses', {
-      p_city:            opts.city ?? 'Lahore',
+      /* NULL = everywhere. Defaulting to 'Lahore' meant the day we onboard a
+         Karachi salon it would be INVISIBLE — not ranked lower, absent. The
+         owner would sign in, see her calendar, and never appear in a single
+         search, and nothing would error. */
+      p_city:            opts.city ?? null,
       p_query:           opts.query || null,
       p_category_slug:   opts.category || null,
       p_customer_gender: opts.gender ?? null,

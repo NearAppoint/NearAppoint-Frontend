@@ -181,7 +181,7 @@ function DashboardMock() {
       <div className="mb-4 flex items-center justify-between">
         <div>
           <b className="block font-display text-[0.88rem] font-bold text-white">Business Dashboard</b>
-          <small className="text-[0.68rem] text-white/40">Glow Studio, Lahore</small>
+          <small className="text-[0.68rem] text-white/40">Glow Studio</small>
         </div>
         <span className="flex items-center gap-1.5 text-[0.62rem] font-semibold text-emerald-400">
           <i className="size-1.5 animate-pulse rounded-full bg-emerald-400" /> Live
@@ -272,7 +272,7 @@ function TrioMock() {
     <div className="flex items-end justify-center gap-3.5">
       <div className="hidden w-[130px] scale-90 rounded-2xl bg-[#C9D2DE] p-2 opacity-45 shadow-lg sm:block">
         <div className="min-h-[150px] rounded-xl bg-soft p-2.5">
-          {['◉ Lahore', 'Hair Salons', 'Beauty Parlors', 'Nail Studios', 'Mehndi Studios'].map((r) => (
+          {['◉ Near me', 'Hair Salons', 'Beauty Parlors', 'Nail Studios', 'Mehndi Studios'].map((r) => (
             <div key={r} className="py-1 text-[0.5rem] text-muted">{r}</div>
           ))}
         </div>
@@ -282,7 +282,7 @@ function TrioMock() {
         <div className="min-h-[150px] rounded-xl bg-soft p-2.5">
           <div className="mb-2 rounded-[7px] bg-brand px-2 py-1.5 text-white">
             <b className="block font-display text-[0.55rem] font-bold">Glow Studio</b>
-            <small className="text-[0.44rem] opacity-85">Hair Salon · DHA, Lahore</small>
+            <small className="text-[0.44rem] opacity-85">Hair Salon · 0.8 km</small>
           </div>
           <p className="mb-1.5 font-display text-[0.5rem] font-bold">Select Time</p>
           <div className="mb-2 grid grid-cols-3 gap-1">

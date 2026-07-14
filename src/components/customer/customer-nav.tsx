@@ -109,9 +109,13 @@ export function CustomerNav({
               </button>
             )}
 
-            <span className="hidden flex-none items-center gap-1 whitespace-nowrap rounded-full bg-warm-low px-3 py-1.5 text-[0.75rem] font-semibold text-warm-muted md:flex">
-              <MapPin className="size-3" /> Lahore
-            </span>
+            {/* A city CHIP, not a slogan. It's a filter she can change — the
+                product isn't "a Lahore app", it's an app that happens to be
+                showing her Lahore right now. */}
+            <button type="button"
+              className="hidden flex-none items-center gap-1 whitespace-nowrap rounded-full bg-warm-low px-3 py-1.5 text-[0.75rem] font-semibold text-warm-muted transition-colors hover:text-brand md:flex">
+              <MapPin className="size-3" /> Near me
+            </button>
           </div>
         </form>
 
