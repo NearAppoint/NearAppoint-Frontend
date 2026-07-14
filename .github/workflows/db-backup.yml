@@ -52,13 +52,41 @@ jobs:
       # postgresql-client-17 — the version MUST be >= your Supabase server, or
       # pg_dump refuses to run against it. Supabase is on 15/16/17; 17 covers all.
       # ----------------------------------------------------------------------
+      # ----------------------------------------------------------------------
+      # pg_dump MUST be >= the server version, or it aborts:
+      #   "aborting because of server version mismatch"
+      #
+      # Supabase runs Postgres 17. Ubuntu's default repo only has 16, so we add
+      # the official PostgreSQL apt repo — with a properly installed signing key.
+      # (apt-key is deprecated and silently fails on newer Ubuntu, which is why
+      #  the last version of this step quietly fell back to 16.)
+      # ----------------------------------------------------------------------
       - name: Install pg_dump 17
         run: |
-          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+          sudo apt-get update -qq
+          sudo apt-get install -y curl ca-certificates gnupg lsb-release
+
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
+            https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client-17
+
+          # Ubuntu keeps 16 on the PATH. Put 17 in front of it, or pg_dump will
+          # still be the old one and the version mismatch comes right back.
+          echo "/usr/lib/postgresql/17/bin" >> $GITHUB_PATH
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+
           pg_dump --version
+          pg_dump --version | grep -q " 17\." || {
+            echo "::error::pg_dump is not version 17. Supabase runs 17 and the dump will abort."
+            exit 1
+          }
 
       - name: Timestamp
         id: meta
