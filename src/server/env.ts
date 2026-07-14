@@ -16,8 +16,6 @@ const schema = z.object({
   SUPABASE_ANON_KEY:         z.string().min(20),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(20),
 
-  BOOKING_FEE_PKR:           z.coerce.number().int().min(0).default(150),
-
   SAFEPAY_API_KEY:           z.string().optional(),
   SAFEPAY_SECRET_KEY:        z.string().optional(),
   SAFEPAY_WEBHOOK_SECRET:    z.string().optional(),

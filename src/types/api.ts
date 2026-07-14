@@ -96,9 +96,20 @@ export interface Appointment {
   staff: StaffMember | null;
   start_at: string;
   end_at: string;
-  total: Money;
-  booking_fee: Money | null;
-  can_reschedule: boolean;    // backend decides. Never compute this client-side.
+  total: Money;              // what she will pay AT THE SALON, in cash.
+  can_reschedule: boolean;   // backend decides. Never compute this client-side.
   can_cancel: boolean;
-  cancel_refunds_fee: boolean;
+
+  /**
+   * NO BOOKING FEE. Booking is free.
+   *
+   * The customer pays the business directly, at the salon, as she always has.
+   * NearAppoint takes nothing from the transaction — we are paid by the salon,
+   * monthly, for the software.
+   *
+   * That means there is no fee to forfeit when someone doesn't turn up. The
+   * no-show defence is the reliability system instead (see RELIABILITY in
+   * src/lib/constants.ts). If that stops working, salons stop trusting the
+   * calendar — and losing supply is how this business dies. Watch the number.
+   */
 }

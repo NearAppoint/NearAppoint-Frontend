@@ -15,13 +15,42 @@ export const BOOKING = {
   DEFAULT_SLOT_GRANULARITY: 15,
 } as const;
 
+/**
+ * NO-SHOW DEFENCE.
+ *
+ * There is NO booking fee. Booking on NearAppoint is free, always.
+ *
+ * That means this reliability system is the ONLY thing standing between a
+ * salon and an empty chair at 6pm on a Saturday. It has to actually work.
+ *
+ * Three layers, in order of how often they fire:
+ *
+ *   1. WhatsApp at T-2h: "Still coming? [Yes] [Reschedule] [Cancel]"
+ *      The single highest-ROI message in the product. A customer who cancels
+ *      at T-2h frees a slot we can still refill. One who ghosts costs everyone.
+ *
+ *   2. Reliability score. Repeat no-shows lose the ability to RESERVE.
+ *      They can still walk in — we are not banning them from the salon, we
+ *      are declining to hold a chair for someone who has stopped showing up.
+ *
+ *   3. The business sees the risk before it accepts:
+ *      "This customer has 2 no-shows in the last 90 days."
+ *
+ * WATCH THIS NUMBER. If the no-show rate on platform bookings goes above ~15%,
+ * salons will stop trusting the calendar and go back to WhatsApp — and losing
+ * supply is how this business dies. At that point, revisit a commitment
+ * mechanism.
+ */
 export const RELIABILITY = {
   // Customer (BR-70..76)
   CUSTOMER_START: 100,
   NO_SHOW_PENALTY: -10,
   LATE_CANCEL_PENALTY: -3,
   COMPLETION_REWARD: +2,          // recovery is possible. People have bad months.
-  NO_SHOWS_BEFORE_FEE_DOUBLES: 3,
+
+  // 3 no-shows in 90 days -> the business is WARNED at booking time.
+  NO_SHOWS_BEFORE_WARNING: 3,
+  // 5 -> cannot RESERVE for 30 days. Can still walk in.
   NO_SHOWS_BEFORE_SUSPENSION: 5,
   SUSPENSION_DAYS: 30,
 
