@@ -39,54 +39,54 @@ export interface CalendarItem {
 }
 
 export class AppointmentService {
-  /** Everything on the calendar for one day. */
+  /**
+   * Everything on the calendar for one day.
+   *
+   * ⚠️  THIS USED TO BE BROKEN, AND IT BROKE SILENTLY.
+   *
+   * The old version filtered with .gte('time_range', from) — comparing a
+   * tstzrange to a timestamp. Postgres doesn't error on that; it coerces and
+   * quietly matches nothing.
+   *
+   * So a customer booked a real appointment, the database stored it perfectly,
+   * the EXCLUDE constraint held the slot — and the owner's calendar said
+   * "0 appointments".
+   *
+   * That is the worst failure this product can have. Not a crash — a calendar
+   * that is confidently, silently WRONG. She turns up, the customer turns up,
+   * and she has no idea who they are.
+   *
+   * Now it asks the right question in SQL: does this appointment OVERLAP the
+   * day? Which also correctly catches a booking that starts at 23:30 and runs
+   * past midnight — it belongs to both days, and she needs to see it on both.
+   */
   static async day(branchId: string, date: string): Promise<CalendarItem[]> {
-    // The business day. Not midnight-to-midnight — a Chaand Raat booking at
-    // 23:30 belongs to today, not tomorrow.
-    const from = `${date}T00:00:00+05:00`;
-    const to   = `${date}T23:59:59+05:00`;
+    const { data, error } = await db().rpc('appointments_for_day', {
+      p_branch_id: branchId,
+      p_date: date,
+    });
 
-    const { data, error } = await db()
-      .from('appointments')
-      .select(`
-        id, reference, status, source, total, time_range,
-        business_customers ( full_name, phone ),
-        appointment_items ( service_id, service_name, occupies_range, service_range,
-                            staff_id, staff ( full_name ) )
-      `)
-      .eq('branch_id', branchId)
-      .not('status', 'in', '(cancelled_by_customer,cancelled_by_business,expired,no_show)')
-      .gte('time_range', from)
-      .lt('time_range', to);
+    if (error) {
+      console.error('[calendar]', error);
+      throw new ApiError('INTERNAL', 'Could not load the calendar.');
+    }
 
-    if (error) throw new ApiError('INTERNAL', 'Could not load the calendar.');
-
-    return (data ?? []).map((a: Record<string, any>) => {
-      const items = a.appointment_items ?? [];
-      const first = items[0];
-
-      const starts = items.map((i: any) => parseRange(i.service_range)[0]).filter(Boolean);
-      const svcEnds = items.map((i: any) => parseRange(i.service_range)[1]).filter(Boolean);
-      const occEnds = items.map((i: any) => parseRange(i.occupies_range)[1]).filter(Boolean);
-
-      return {
-        id: a.id,
-        reference: a.reference,
-        status: a.status,
-        customer_name: a.business_customers?.full_name ?? 'Walk-in',
-        customer_phone: a.business_customers?.phone?.startsWith('+92')
-          ? a.business_customers.phone : null,
-        staff_id: first?.staff_id ?? null,
-        staff_name: first?.staff?.full_name ?? null,
-        services: items.map((i: any) => i.service_name),
-        service_ids: items.map((i: any) => i.service_id),
-        start_at: min(starts),
-        end_at: max(svcEnds),
-        occupies_end_at: max(occEnds),
-        total: Number(a.total),
-        source: a.source,
-      };
-    }).sort((x, y) => x.start_at.localeCompare(y.start_at));
+    return ((data ?? []) as any[]).map(a => ({
+      id: a.id,
+      reference: a.reference,
+      status: a.status,
+      customer_name: a.customer_name,
+      customer_phone: a.customer_phone,
+      staff_id: a.staff_id,
+      staff_name: a.staff_name,
+      services: a.services ?? [],
+      service_ids: a.service_ids ?? [],
+      start_at: a.start_at ? new Date(a.start_at).toISOString() : '',
+      end_at: a.end_at ? new Date(a.end_at).toISOString() : '',
+      occupies_end_at: a.occupies_end_at ? new Date(a.occupies_end_at).toISOString() : '',
+      total: Number(a.total),
+      source: a.source,
+    }));
   }
 
   /**
@@ -177,12 +177,3 @@ export class AppointmentService {
   }
 }
 
-/* ---- tstzrange parsing. Postgres gives us ["2026-07-14 14:00+05","..."). ---- */
-function parseRange(r: string | null): [string, string] {
-  if (!r) return ['', ''];
-  const m = r.match(/^[\[(]"?([^",]+)"?,"?([^",)\]]+)"?[\])]$/);
-  if (!m) return ['', ''];
-  return [new Date(m[1]!).toISOString(), new Date(m[2]!).toISOString()];
-}
-const min = (a: string[]) => a.length ? a.reduce((x, y) => (x < y ? x : y)) : '';
-const max = (a: string[]) => a.length ? a.reduce((x, y) => (x > y ? x : y)) : '';
