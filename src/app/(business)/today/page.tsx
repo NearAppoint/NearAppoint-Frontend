@@ -65,13 +65,13 @@ export default function TodayPage() {
   const active = items.filter(i => i.status !== 'completed');
 
   const today = new Date().toLocaleDateString('en-GB', {
-    weekday: 'long', day: 'numeric', month: 'long',
+    weekday: 'long', day: 'numeric', month: 'short', year: 'numeric',
   });
 
   return (
     <div className="mx-auto max-w-[900px]">
       <PageHeader
-        title="Today"
+        title="Overview"
         subtitle={today}
         actions={ready ? (
           <>

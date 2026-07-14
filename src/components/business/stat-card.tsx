@@ -7,7 +7,12 @@ export function StatCard({ label, value, accent, hint }: {
   hint?: string;
 }) {
   return (
-    <div className="rounded-lg border border-line bg-white p-5">
+    <div className={cn(
+      'rounded-lg border bg-white p-5',
+      /* The number she actually cares about gets an orange left edge. Her eye
+         lands on it before she's read a word. */
+      accent ? 'border-line border-l-[3px] border-l-brand' : 'border-line',
+    )}>
       <p className="font-display text-[0.68rem] font-bold uppercase tracking-[0.1em] text-faint">
         {label}
       </p>

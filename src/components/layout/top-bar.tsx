@@ -1,5 +1,6 @@
 'use client';
 import * as React from 'react';
+import { usePathname } from 'next/navigation';
 import { Search, Bell, Settings, HelpCircle } from 'lucide-react';
 
 /**
@@ -9,14 +10,30 @@ import { Search, Bell, Settings, HelpCircle } from 'lucide-react';
  * with a customer in front of her should be able to type a phone number from
  * ANY screen and find them, not navigate to Customers first.
  */
+const TITLES: Record<string, string> = {
+  '/today':                  "Today's Dashboard",
+  '/calendar':               'Calendar',
+  '/customers':              'Customer Management',
+  '/services':               'Services',
+  '/staff':                  'Staff Management',
+  '/settings/hours':         'Opening Hours',
+  '/settings/special-hours': 'Special Hours',
+  '/settings/profile':       'Business Profile',
+};
+
 export function TopBar({ ownerName, role = 'Owner' }: {
   ownerName: string; role?: string;
 }) {
+  const path = usePathname();
   const initials = ownerName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const title = TITLES[path] ?? '';
 
   return (
-    <header className="sticky top-0 z-30 hidden items-center gap-5 border-b border-line bg-white px-9 py-3.5 lg:flex">
-      <div className="flex max-w-[420px] flex-1 items-center gap-2.5 rounded-full border border-line2 bg-soft px-4 py-2.5 transition-colors focus-within:border-brand focus-within:bg-white">
+    <header className="sticky top-0 z-30 hidden items-center gap-6 border-b border-line bg-white px-9 py-3.5 lg:flex">
+      <h2 className="w-[190px] flex-none font-display text-[1.02rem] font-bold tracking-tight text-ink">
+        {title}
+      </h2>
+      <div className="flex max-w-[380px] flex-1 items-center gap-2.5 rounded-full border border-line2 bg-soft px-4 py-2.5 transition-colors focus-within:border-brand focus-within:bg-white">
         <Search className="size-[17px] flex-none text-faint" />
         <input
           placeholder="Search by phone or name"
