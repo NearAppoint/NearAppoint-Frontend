@@ -21,9 +21,9 @@ export default async function BusinessLayout({ children }: { children: React.Rea
     .maybeSingle();
 
   return (
-    <div className="min-h-screen bg-soft lg:pl-[240px]">
+    <div className="min-h-screen bg-soft lg:pl-[260px]">
       <BusinessSidebar businessName={business?.display_name ?? 'Your business'} />
-      <main className="p-5 lg:p-8">{children}</main>
+      <main className="p-5 lg:p-9">{children}</main>
     </div>
   );
 }

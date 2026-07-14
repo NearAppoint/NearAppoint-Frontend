@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
+import { PageHeader } from '@/components/business/page-header';
+import { Panel, Callout } from '@/components/business/panel';
 import { formatAsTyped } from '@/lib/phone';
 import { cn } from '@/lib/utils';
 
@@ -46,8 +48,8 @@ export default function StaffPage() {
   if (allServices.length === 0) {
     return (
       <div className="mx-auto max-w-[900px]">
-        <h1 className="mb-7 text-[2rem]">Staff</h1>
-        <Card className="border-brand/25 bg-brand-tint2 py-12 text-center">
+        <PageHeader title="Staff" />
+        <Callout className="py-12 text-center">
           <h2 className="mb-2.5 text-[1.3rem]">Add your services first.</h2>
           <p className="mx-auto mb-6 max-w-[42ch] text-[0.94rem] leading-relaxed text-muted">
             Staff are assigned to the services they can do — so the menu has to
@@ -56,24 +58,18 @@ export default function StaffPage() {
           <Button asChild size="lg">
             <Link href="/services">Add services <ArrowRight /></Link>
           </Button>
-        </Card>
+        </Callout>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-[900px]">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[2rem]">Staff</h1>
-          <p className="mt-1 text-[0.92rem] text-muted">
-            {staff.length === 0 ? 'Nobody added yet.' : `${staff.length} on the team`}
-          </p>
-        </div>
-        {staff.length > 0 && (
-          <AddStaffDialog groups={groups} onDone={load} />
-        )}
-      </div>
+      <PageHeader
+        title="Staff"
+        subtitle={staff.length === 0 ? 'Nobody added yet.' : `${staff.length} on the team`}
+        actions={staff.length > 0 ? <AddStaffDialog groups={groups} onDone={load} /> : undefined}
+      />
 
       {error && (
         <div className="mb-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-[0.88rem] text-red-700">
@@ -82,7 +78,7 @@ export default function StaffPage() {
       )}
 
       {staff.length === 0 ? (
-        <Card className="border-brand/25 bg-brand-tint2 py-12 text-center">
+        <Callout className="py-12 text-center">
           <div className="mx-auto mb-4 grid size-12 place-items-center rounded-lg bg-white text-brand">
             <Users className="size-6" />
           </div>
@@ -94,13 +90,13 @@ export default function StaffPage() {
           <AddStaffDialog groups={groups} onDone={load} trigger={
             <Button size="lg"><Plus /> Add someone</Button>
           } />
-        </Card>
+        </Callout>
       ) : (
-        <Card className="divide-y divide-line p-0">
+        <Panel>
           {staff.map(m => (
             <StaffRow key={m.id} member={m} groups={groups} onDone={load} />
           ))}
-        </Card>
+        </Panel>
       )}
     </div>
   );

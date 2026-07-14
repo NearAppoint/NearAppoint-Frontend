@@ -2,7 +2,8 @@
 import * as React from 'react';
 import { Loader2, Check, Copy, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { PageHeader } from '@/components/business/page-header';
+import { Panel } from '@/components/business/panel';
 import { cn } from '@/lib/utils';
 
 interface Hours { day_of_week: number; opens_at: string; closes_at: string; is_closed: boolean }
@@ -77,14 +78,12 @@ export default function HoursPage() {
 
   return (
     <div className="mx-auto max-w-[680px]">
-      <div className="mb-7">
-        <h1 className="text-[2rem]">Opening hours</h1>
-        <p className="mt-1 text-[0.92rem] text-muted">
-          When your doors are open. The calendar follows these.
-        </p>
-      </div>
+      <PageHeader
+        title="Opening hours"
+        subtitle="When your doors are open. The calendar follows these."
+      />
 
-      <Card className="divide-y divide-line p-0">
+      <Panel>
         {ordered.map(d => (
           <div key={d.day_of_week} className="flex flex-wrap items-center gap-3 p-4">
             <label className="flex w-[130px] flex-none cursor-pointer items-center gap-2.5">
@@ -122,7 +121,7 @@ export default function HoursPage() {
             )}
           </div>
         ))}
-      </Card>
+      </Panel>
 
       {error && (
         <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-[0.88rem] text-red-700">

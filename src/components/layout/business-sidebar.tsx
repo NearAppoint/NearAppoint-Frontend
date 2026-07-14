@@ -1,21 +1,34 @@
 'use client';
 import * as React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  CalendarDays, LayoutDashboard, Users, Scissors, UserCog, LogOut, Menu, X, Clock,
+  CalendarDays, LayoutDashboard, Users, Scissors, UserCog, Clock,
+  Store, LogOut, Menu, X, Plus,
 } from 'lucide-react';
-import { Logo } from '@/components/ui/logo';
 import { auth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 
+/**
+ * THE SHELL.
+ *
+ * Slate-navy (#394763), not the marketing navy. She stares at this for eight
+ * hours a day — the softer slate doesn't fight the content the way a hard navy
+ * would.
+ *
+ * The active item gets an ORANGE LEFT BORDER, not a filled background. At a
+ * glance, across a room, on a counter tablet, a 4px orange edge reads faster
+ * than a colour change.
+ */
 const NAV = [
-  { href: '/today',     label: 'Today',     icon: LayoutDashboard },
-  { href: '/calendar',  label: 'Calendar',  icon: CalendarDays },
-  { href: '/customers', label: 'Customers', icon: Users,        soon: true },
-  { href: '/services',  label: 'Services',  icon: Scissors },
-  { href: '/staff',     label: 'Staff',     icon: UserCog },
-  { href: '/settings/hours', label: 'Hours', icon: Clock },
+  { href: '/today',          label: 'Today',     icon: LayoutDashboard },
+  { href: '/calendar',       label: 'Calendar',  icon: CalendarDays },
+  { href: '/customers',      label: 'Customers', icon: Users,    soon: true },
+  { href: '/services',       label: 'Services',  icon: Scissors },
+  { href: '/staff',          label: 'Staff',     icon: UserCog },
+  { href: '/settings/hours', label: 'Hours',     icon: Clock },
+  { href: '/settings/profile', label: 'Profile', icon: Store,    soon: true },
 ];
 
 export function BusinessSidebar({ businessName }: { businessName: string }) {
@@ -31,43 +44,63 @@ export function BusinessSidebar({ businessName }: { businessName: string }) {
 
   return (
     <>
-      {/* Mobile bar. The owner checks her phone constantly; the counter uses a tablet. */}
+      {/* Mobile bar — she checks her phone constantly; the counter is a tablet. */}
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-white px-4 py-3 lg:hidden">
-        <Logo />
+        <div className="flex items-center gap-2">
+          <Image src="/assets/logo-mark.svg" alt="" width={26} height={26} className="h-[26px] w-auto" />
+          <span className="font-display text-[0.95rem] font-extrabold tracking-tight text-ink">
+            {businessName}
+          </span>
+        </div>
         <button onClick={() => setOpen(!open)} aria-label="Menu"
-          className="grid size-10 place-items-center rounded-sm border border-line2">
+          className="grid size-10 place-items-center rounded-sm border border-line2 text-ink">
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
 
       <aside className={cn(
-        'fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col border-r border-line bg-white transition-transform lg:translate-x-0',
+        'fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col bg-shell transition-transform lg:translate-x-0',
         open ? 'translate-x-0' : '-translate-x-full',
       )}>
-        <div className="border-b border-line p-5">
-          <Logo />
-          <p className="mt-3 truncate font-display text-[0.88rem] font-bold text-ink">{businessName}</p>
+        {/* brand */}
+        <div className="px-6 pb-6 pt-7">
+          <div className="mb-4 flex items-center gap-2">
+            <Image src="/assets/logo-mark-dark.svg" alt="" width={28} height={28}
+              className="h-7 w-auto" />
+            <span className="font-display text-[1.05rem] font-extrabold tracking-[-0.03em] text-white">
+              Near<span className="text-brand">Appoint</span>
+            </span>
+          </div>
+          <p className="truncate font-display text-[1.15rem] font-extrabold tracking-tight text-white">
+            {businessName}
+          </p>
+          <p className="mt-0.5 font-display text-[0.62rem] font-bold uppercase tracking-[0.14em] text-shell-muted">
+            Professional Management
+          </p>
         </div>
 
-        <nav className="flex-1 space-y-1 p-3">
+        {/* nav */}
+        <nav className="flex-1 overflow-y-auto py-2">
           {NAV.map(({ href, label, icon: Icon, soon }) => {
-            const active = path === href;
+            const active = path === href || path.startsWith(href + '/');
             return (
               <Link
                 key={href}
                 href={soon ? '#' : href}
                 onClick={(e) => { if (soon) e.preventDefault(); setOpen(false); }}
                 className={cn(
-                  'flex items-center gap-3 rounded-sm px-3 py-2.5 font-display text-[0.9rem] font-semibold transition-colors',
-                  active ? 'bg-brand-tint text-brand'
-                         : soon ? 'cursor-default text-faint'
-                                : 'text-muted hover:bg-soft hover:text-ink',
+                  'flex items-center gap-3.5 border-l-4 px-5 py-3 font-display text-[0.94rem] font-semibold transition-colors',
+                  active
+                    ? 'border-brand bg-shell-active text-brand'
+                    : soon
+                      ? 'cursor-default border-transparent text-shell-muted/45'
+                      : 'border-transparent text-shell-muted hover:bg-shell-hover hover:text-white',
                 )}
               >
-                <Icon className="size-[18px]" />
+                <Icon className="size-[19px] flex-none" />
                 {label}
                 {soon && (
-                  <span className="ml-auto rounded bg-soft px-1.5 py-0.5 text-[0.55rem] font-bold uppercase tracking-wide text-faint">
+                  <span className="ml-auto rounded bg-white/10 px-1.5 py-0.5 text-[0.52rem] font-bold uppercase tracking-wide">
                     Soon
                   </span>
                 )}
@@ -76,14 +109,24 @@ export function BusinessSidebar({ businessName }: { businessName: string }) {
           })}
         </nav>
 
-        <button onClick={() => void signOut()}
-          className="m-3 flex items-center gap-3 rounded-sm px-3 py-2.5 font-display text-[0.9rem] font-semibold text-muted transition-colors hover:bg-soft hover:text-ink">
-          <LogOut className="size-[18px]" /> Sign out
-        </button>
+        {/* footer */}
+        <div className="space-y-1 p-4">
+          <button
+            onClick={() => { setOpen(false); router.push('/calendar'); }}
+            className="flex w-full items-center justify-center gap-2 rounded-sm bg-brand py-3 font-display text-[0.92rem] font-bold text-white shadow-brand transition-colors hover:bg-brand-hover"
+          >
+            <Plus className="size-[18px]" /> New Appointment
+          </button>
+
+          <button onClick={() => void signOut()}
+            className="flex w-full items-center gap-3.5 rounded-sm px-4 py-3 font-display text-[0.92rem] font-semibold text-shell-muted transition-colors hover:bg-shell-hover hover:text-white">
+            <LogOut className="size-[18px]" /> Sign out
+          </button>
+        </div>
       </aside>
 
       {open && (
-        <div className="fixed inset-0 z-40 bg-navy/30 lg:hidden" onClick={() => setOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-navy/40 lg:hidden" onClick={() => setOpen(false)} />
       )}
     </>
   );

@@ -171,7 +171,7 @@ function WalkInForm({ groups, staff, onDone }: {
 
         {/* ---- The moment that sells the product. ---- */}
         {known ? (
-          <div className="rounded-lg border border-ok/30 bg-ok/[.06] p-3.5">
+          <div className="rounded-lg border border-ok/30 bg-ok/[.07] p-4">
             <div className="flex items-start gap-3">
               <span className="grid size-9 flex-none place-items-center rounded-full bg-ok/15 font-display text-[0.75rem] font-bold text-ok">
                 {(known.full_name ?? '?').split(' ').map(w => w[0]).slice(0, 2).join('')}

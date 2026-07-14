@@ -7,6 +7,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { WalkInDialog } from '@/components/business/walk-in-dialog';
+import { PageHeader } from '@/components/business/page-header';
+import { StatCard } from '@/components/business/stat-card';
+import { Panel, Callout, Tag } from '@/components/business/panel';
 import { formatPKR } from '@/lib/money';
 import { cn } from '@/lib/utils';
 
@@ -66,25 +69,21 @@ export default function TodayPage() {
 
   return (
     <div className="mx-auto max-w-[900px]">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="mb-1 font-display text-[0.78rem] font-bold uppercase tracking-wider text-faint">
-            {today}
-          </p>
-          <h1 className="text-[2rem]">Today</h1>
-        </div>
-        {ready && <WalkInDialog groups={groups} staff={staff} onDone={load} />}
-      </div>
+      <PageHeader
+        title="Today"
+        subtitle={today}
+        actions={ready ? <WalkInDialog groups={groups} staff={staff} onDone={load} /> : undefined}
+      />
 
       {!ready ? (
         /* ---------------- SETUP ---------------- */
         <>
-          <Card className="mb-6 border-brand/25 bg-brand-tint2">
+          <Callout className="mb-6">
             <h2 className="mb-2 text-[1.3rem]">Two things and you&apos;re taking bookings.</h2>
             <p className="max-w-[52ch] text-[0.93rem] leading-relaxed text-muted">
               About five minutes. We&apos;ll do it with you.
             </p>
-          </Card>
+          </Callout>
 
           <div className="space-y-3">
             <Step n={1} done={hasServices} icon={<Scissors className="size-[18px]" />}
@@ -100,11 +99,11 @@ export default function TodayPage() {
       ) : (
         /* ---------------- THE DAY ---------------- */
         <>
-          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat label="Appointments" value={String(items.length)} />
-            <Stat label="Completed" value={String(done.length)} />
-            <Stat label="Earned" value={formatPKR(earned)} accent />
-            <Stat label="In progress"
+          <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <StatCard label="Appointments" value={String(items.length)} />
+            <StatCard label="Completed"    value={String(done.length)} />
+            <StatCard label="Earned"       value={formatPKR(earned)} accent />
+            <StatCard label="In progress"
               value={String(items.filter(i => i.status === 'in_progress').length)} />
           </div>
 
@@ -123,19 +122,19 @@ export default function TodayPage() {
           ) : (
             <div className="space-y-5">
               {active.length > 0 && (
-                <Card className="divide-y divide-line p-0">
+                <Panel>
                   {active.map(i => <Row key={i.id} item={i} onDone={load} />)}
-                </Card>
+                </Panel>
               )}
 
               {done.length > 0 && (
                 <div>
-                  <p className="mb-2 px-1 font-display text-[0.75rem] font-bold uppercase tracking-wider text-faint">
+                  <p className="mb-2.5 px-1 font-display text-[0.7rem] font-bold uppercase tracking-[0.1em] text-faint">
                     Finished
                   </p>
-                  <Card className="divide-y divide-line p-0">
+                  <Panel>
                     {done.map(i => <Row key={i.id} item={i} onDone={load} />)}
-                  </Card>
+                  </Panel>
                 </div>
               )}
             </div>
@@ -143,20 +142,6 @@ export default function TodayPage() {
         </>
       )}
     </div>
-  );
-}
-
-function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <Card className="p-4">
-      <p className="mb-1 text-[0.75rem] text-muted">{label}</p>
-      <p className={cn(
-        'tnum font-display text-[1.35rem] font-extrabold tracking-tight',
-        accent ? 'text-brand' : 'text-ink',
-      )}>
-        {value}
-      </p>
-    </Card>
   );
 }
 
@@ -206,9 +191,7 @@ function Row({ item, onDone }: { item: Item; onDone: () => Promise<void> }) {
       </span>
 
       {done ? (
-        <span className="inline-flex items-center gap-1.5 rounded bg-ok/12 px-2.5 py-1 font-display text-[0.68rem] font-bold text-ok">
-          <Check className="size-3" strokeWidth={3} /> Done
-        </span>
+        <Tag tone="ok"><Check className="size-3" strokeWidth={3} /> Done</Tag>
       ) : live ? (
         <Button size="sm" loading={busy} onClick={() => void advance('completed')}>
           Complete

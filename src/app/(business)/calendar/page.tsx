@@ -3,6 +3,7 @@ import * as React from 'react';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WalkInDialog } from '@/components/business/walk-in-dialog';
+import { Panel } from '@/components/business/panel';
 import { cn } from '@/lib/utils';
 
 interface Item {
@@ -86,10 +87,10 @@ export default function CalendarPage() {
           </div>
 
           <div>
-            <h1 className="text-[1.6rem]">
+            <h1 className="text-[1.9rem] leading-none">
               {isToday ? 'Today' : d.toLocaleDateString('en-GB', { weekday: 'long' })}
             </h1>
-            <p className="text-[0.85rem] text-muted">
+            <p className="mt-2 text-[0.9rem] text-muted">
               {d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}
               {' · '}
               <span className="tnum">{items.length}</span> {items.length === 1 ? 'appointment' : 'appointments'}
@@ -123,11 +124,11 @@ export default function CalendarPage() {
         <div className="overflow-x-auto rounded-lg border border-line bg-white">
           <div className="min-w-[640px]">
             {/* header */}
-            <div className="sticky top-0 z-10 flex border-b border-line bg-white">
+            <div className="sticky top-0 z-10 flex border-b border-line bg-soft/60">
               <div className="w-[62px] flex-none border-r border-line" />
               {staff.map(s => (
                 <div key={s.id}
-                  className="flex-1 border-r border-line px-3 py-3 text-center font-display text-[0.85rem] font-bold text-ink last:border-r-0">
+                  className="flex-1 border-r border-line px-3 py-3.5 text-center font-display text-[0.72rem] font-bold uppercase tracking-[0.08em] text-faint last:border-r-0">
                   {s.full_name}
                 </div>
               ))}

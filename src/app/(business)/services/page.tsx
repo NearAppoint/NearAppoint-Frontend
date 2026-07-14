@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
+import { PageHeader } from '@/components/business/page-header';
+import { Panel, Callout } from '@/components/business/panel';
 import { formatPKR } from '@/lib/money';
 import { cn } from '@/lib/utils';
 
@@ -55,25 +57,17 @@ export default function ServicesPage() {
 
   return (
     <div className="mx-auto max-w-[900px]">
-      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[2rem]">Services</h1>
-          <p className="mt-1 text-[0.92rem] text-muted">
-            {total === 0 ? 'Your menu is empty.' : `${total} services`}
-            {unpriced > 0 && (
-              <span className="ml-1 text-brand">
-                &middot; {unpriced} still need a price
-              </span>
-            )}
-          </p>
-        </div>
-        {total > 0 && (
-          <div className="flex gap-2.5">
+      <PageHeader
+        title="Services"
+        subtitle={total === 0 ? 'Your menu is empty.' : `${total} services`}
+        accent={unpriced > 0 ? `${unpriced} still need a price` : undefined}
+        actions={total > 0 ? (
+          <>
             <NewGroupDialog onDone={load} />
             <NewServiceDialog groups={groups} onDone={load} />
-          </div>
-        )}
-      </div>
+          </>
+        ) : undefined}
+      />
 
       {error && (
         <div className="mb-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-[0.88rem] text-red-700">
@@ -83,7 +77,7 @@ export default function ServicesPage() {
 
       {total === 0 ? (
         /* ---------- EMPTY: the quick-start. This is the whole point. -------- */
-        <Card className="border-brand/25 bg-brand-tint2 py-12 text-center">
+        <Callout className="py-12 text-center">
           <div className="mx-auto mb-4 grid size-12 place-items-center rounded-lg bg-white text-brand">
             <Sparkles className="size-6" />
           </div>
@@ -104,9 +98,9 @@ export default function ServicesPage() {
               <Button size="lg" variant="secondary">Start from scratch</Button>
             } />
           </div>
-        </Card>
+        </Callout>
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-6">
           {groups.map(g => (
             <GroupCard key={g.id} group={g} onDone={load} />
           ))}
@@ -137,11 +131,11 @@ function GroupCard({ group, onDone }: { group: Group; onDone: () => Promise<void
         )}
       </div>
 
-      <Card className="divide-y divide-line p-0">
+      <Panel>
         {group.services.map(s => (
           <ServiceRow key={s.id} service={s} onDone={onDone} />
         ))}
-      </Card>
+      </Panel>
     </div>
   );
 }

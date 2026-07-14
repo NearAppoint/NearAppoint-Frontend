@@ -26,6 +26,22 @@ export default {
           soft:    '#16294B',
           line:    '#1E355C',
         },
+
+        /**
+         * BUSINESS OS SHELL — taken from the design, sampled from the pixels.
+         *
+         * The sidebar is a slate-navy (#394763), NOT the marketing navy
+         * (#0F2140). Two different surfaces for two different jobs: the
+         * marketing site is a brochure, the dashboard is a tool she stares at
+         * for eight hours. The slate is softer and doesn't fight the content.
+         */
+        shell: {
+          DEFAULT: '#394763',   // sidebar
+          hover:   '#45557A',
+          active:  '#2C3852',
+          border:  '#4A5A7C',
+          muted:   '#A9B3C7',   // sidebar text, inactive
+        },
         ink:   '#16243E',
         muted: '#64748B',
         faint: '#94A3B8',
