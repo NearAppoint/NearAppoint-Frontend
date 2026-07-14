@@ -22,3 +22,9 @@ export function formatAsTyped(raw: string): string {
   const d = digitsOnly(raw);
   return d.length > 3 ? `${d.slice(0, 3)} ${d.slice(3)}` : d;
 }
+
+/** "0300 1234567" — how a Pakistani reads their own number back. */
+export function toLocalDisplay(e164: string): string {
+  const d = e164.replace(/^\+92/, '');
+  return `0${d.slice(0, 3)} ${d.slice(3)}`;
+}

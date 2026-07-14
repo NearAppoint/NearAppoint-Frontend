@@ -1,0 +1,7 @@
+{
+  "crons": [
+    { "path": "/api/cron/expire-holds",  "schedule": "* * * * *" },
+    { "path": "/api/cron/mark-no-shows", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/send-reminders","schedule": "*/10 * * * *" }
+  ]
+}

@@ -13,12 +13,15 @@ import {
 export interface Category { icon: LucideIcon; name: string; count: string; desc: string; }
 
 export const CATEGORIES: Category[] = [
-  { icon: Scissors,    name: 'Hair Salons',        count: '540+', desc: 'Haircuts, color, treatments & styling' },
-  { icon: Sparkles,    name: 'Beauty Parlors',     count: '420+', desc: 'Facials, threading, waxing & more' },
-  { icon: Hand,        name: 'Nail Studios',       count: '280+', desc: 'Manicure, pedicure, nail art & extensions' },
-  { icon: Flower2,     name: 'Mehndi Studios',     count: '190+', desc: 'Bridal, party & everyday mehndi design' },
-  { icon: Heart,       name: 'Wellness Centers',   count: '340+', desc: 'Massage, spa, therapy & relaxation' },
-  { icon: Stethoscope, name: 'Clinics & Dentists', count: '390+', desc: 'GP, dental, derma & specialist consultations' },
+  { icon: Scissors,    name: 'Hair Salons',        count: 'New', desc: 'Cuts, colour, styling, beard & grooming' },
+  { icon: Sparkles,    name: 'Beauty Parlors',     count: 'New', desc: 'Makeup, facials, threading, waxing & bridal' },
+  { icon: Hand,        name: 'Nail Studios',       count: 'New', desc: 'Manicure, pedicure, gel, acrylic & nail art' },
+  { icon: Flower2,     name: 'Mehndi Studios',     count: 'New', desc: 'Bridal, party & occasion mehndi' },
+  { icon: Heart,       name: 'Wellness Centers',   count: 'New', desc: 'Spa, massage, therapy & relaxation' },
+  // Aesthetic Clinics: cosmetic treatments only. Botox, fillers and PRP are
+  // NOT offered — they're prescription-only injectables regulated by the PMC.
+  // Laser and anti-aging are consultation-first. Enforced in the DB, not here.
+  { icon: Stethoscope, name: 'Aesthetic Clinics',  count: 'New', desc: 'Skin treatments & aesthetic consultations' },
 ];
 
 export const STEPS = [

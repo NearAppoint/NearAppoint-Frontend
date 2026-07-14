@@ -6,7 +6,6 @@ import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { OtpInput } from '@/features/auth/components/otp-input';
 import { useOtp } from '@/features/auth/hooks/use-otp';
 import { auth } from '@/lib/auth';
-import { toLocalDisplayFromDigits } from '@/lib/display';
 import { toE164 } from '@/lib/phone';
 
 function VerifyInner() {
@@ -37,7 +36,7 @@ function VerifyInner() {
       <p className="mb-7 text-[0.97rem] leading-snug text-muted">
         We sent a 6-digit code on WhatsApp to<br />
         <span className="tnum mt-1 inline-flex items-center gap-2 rounded-md border border-line2 bg-white px-3 py-1.5 font-mono text-[0.95rem] font-semibold text-ink">
-          {toLocalDisplayFromDigits(digits)}
+          {`0${digits.slice(0, 3)} ${digits.slice(3)}`}
           <Link href="/login" className="font-sans text-[0.84rem] font-semibold text-brand hover:underline">Edit</Link>
         </span>
       </p>

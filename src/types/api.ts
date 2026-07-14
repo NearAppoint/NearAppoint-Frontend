@@ -1,4 +1,18 @@
 /**
+ * The API contract. Shared between the browser and the route handlers.
+ *
+ * This file is NOT server-only — both sides import it. It contains types only,
+ * never logic, never secrets.
+ */
+export interface ApiError {
+  code: string;
+  title: string;
+  detail?: string;
+  meta?: Record<string, unknown> | null;
+  request_id?: string;
+}
+
+/**
  * API contract. Mirrors what the backend returns.
  *
  * NOT generated from the database — deliberately. This repo should only know
