@@ -28,6 +28,22 @@ interface SlotGroup { start_at: string; staff: { id: string; name: string }[] }
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+/**
+ * A booking she started before signing in must SURVIVE the trip to Google.
+ *
+ * Without this: she picks three services, taps Confirm, gets bounced to Google,
+ * comes back — and the page is blank. Everything she chose is gone and she has
+ * to do it all again.
+ *
+ * That is the single most likely moment for someone to give up on the app
+ * entirely, and it happens on her FIRST booking, which is the only one that
+ * decides whether there's a second.
+ *
+ * sessionStorage, not localStorage: this should not survive a closed tab. It's
+ * an in-flight action, not a saved preference.
+ */
+const PENDING_KEY = 'na:pending-booking';
+
 export default function BusinessPage() {
   const { slug } = useParams<{ slug: string }>();
   const [b, setB] = React.useState<Biz | null>(null);
@@ -39,6 +55,34 @@ export default function BusinessPage() {
       .then(r => r.json())
       .then(j => setB(j.data));
   }, [slug]);
+
+  /* Came back from signing in? Put her booking back exactly where it was, and
+     reopen the time picker — she should land back in the flow, not at the top
+     of the page wondering what happened. */
+  React.useEffect(() => {
+    if (!b) return;
+
+    try {
+      const raw = sessionStorage.getItem(PENDING_KEY);
+      if (!raw) return;
+
+      const saved = JSON.parse(raw) as { slug: string; services: string[] };
+      sessionStorage.removeItem(PENDING_KEY);
+
+      if (saved.slug !== slug || !saved.services?.length) return;
+
+      // Only restore services this business still offers. A stale selection
+      // pointing at a deleted service would fail at the server with a message
+      // she can't act on.
+      const valid = b.menu.flatMap(g => g.services).map(x => x.id);
+      const keep = saved.services.filter(id => valid.includes(id));
+
+      if (keep.length) {
+        setPicked(keep);
+        setBooking(true);
+      }
+    } catch { /* corrupt storage. Ignore it and let her start again. */ }
+  }, [b, slug]);
 
   if (!b) {
     return <div className="grid min-h-[60vh] place-items-center text-warm-faint">
@@ -330,7 +374,20 @@ function BookDialog({ b, serviceIds, total, minutes, onClose }: {
     setError(null);
 
     const { data } = await auth.getUser();
-    if (!data.user) { router.push(`/login?next=/b/${b.slug}`); return; }
+
+    if (!data.user) {
+      // Save what she's chosen BEFORE we send her away. She gets it all back.
+      try {
+        sessionStorage.setItem(PENDING_KEY, JSON.stringify({
+          slug: b.slug,
+          services: serviceIds,
+        }));
+      } catch { /* private mode. She'll just have to re-pick. */ }
+
+      router.push(`/login?next=${encodeURIComponent(`/b/${b.slug}`)}`);
+      return;
+    }
+
     if (!slot || !staffId) { setError('Pick a time.'); return; }
 
     setBusy(true);

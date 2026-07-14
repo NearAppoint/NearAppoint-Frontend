@@ -10,7 +10,18 @@ import { NextResponse, type NextRequest } from 'next/server';
  *
  * The real security is RLS + the server layer. This is the UX guard.
  */
-const BUSINESS_ROUTES = ['/today', '/calendar', '/customers', '/services', '/staff', '/settings'];
+/**
+ * Every business route. If one is missing, a signed-in CUSTOMER can open it —
+ * she'll get a 403 from the API rather than data, so it isn't a leak, but she
+ * sees a broken screen and concludes the product is broken.
+ *
+ * /reports was missing. So were /staff/schedules and /staff/leave (covered by
+ * the /staff prefix, but worth knowing).
+ */
+const BUSINESS_ROUTES = [
+  '/today', '/calendar', '/customers', '/services',
+  '/staff', '/settings', '/reports',
+];
 /* /b/* is a PUBLIC business profile — anyone can browse it without an account.
    Only /bookings requires being signed in. Forcing a login before someone can
    even LOOK is how you lose them. */

@@ -64,7 +64,10 @@ function LoginInner() {
       return;
     }
 
-    // Middleware decides where they belong. We just refresh.
+    /* Middleware decides where they BELONG (customer vs business). We just send
+       them where they were GOING. A business account with ?next=/b/glow-salon
+       will be bounced to /today by middleware, which is correct — but a
+       customer coming back from a half-finished booking lands right back in it. */
     router.push(next ?? '/today');
     router.refresh();
   };

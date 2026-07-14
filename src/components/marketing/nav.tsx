@@ -66,9 +66,17 @@ export function Nav() {
 
         <div className="flex items-center gap-3.5">
           {signedIn ? (
-            <Button variant="secondary" onClick={() => void signOut()}>
-              <LogOut /> Sign out
-            </Button>
+            /* She's already a user. Don't sell to her — let her in.
+               "Get Started" to someone who already started is a small, constant
+               insult, and it makes the site feel like it doesn't know her. */
+            <>
+              <Button asChild>
+                <Link href="/home">Open app</Link>
+              </Button>
+              <Button variant="ghost" onClick={() => void signOut()}>
+                <LogOut />
+              </Button>
+            </>
           ) : signedIn === false ? (
             <>
               <Link href="/login"
