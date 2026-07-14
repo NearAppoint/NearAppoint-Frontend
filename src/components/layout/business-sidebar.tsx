@@ -92,7 +92,9 @@ export function BusinessSidebar({ businessName }: { businessName: string }) {
         </div>
 
         {/* nav */}
-        <nav className="flex-1 overflow-y-auto py-2">
+        {/* Overflow scrolls, but no visible scrollbar. A permanent grey bar
+            down the sidebar is noise she stares at for eight hours. */}
+        <nav className="flex-1 overflow-y-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {NAV.map(({ href, label, icon: Icon, soon }) => {
             const active = path === href || path.startsWith(href + '/');
             return (

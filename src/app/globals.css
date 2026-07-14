@@ -15,3 +15,20 @@
   /* Numbers that must line up: times, prices, phone numbers. */
   .tnum { font-variant-numeric: tabular-nums; }
 }
+
+
+/* ---------------------------------------------------------------------------
+   Scrollbars.
+
+   Content still scrolls; the bar just isn't drawn. A permanent grey track down
+   the sidebar — or under every horizontal date strip — is visual noise the
+   owner looks at all day, and it tells her nothing she doesn't already know
+   from the content moving.
+   --------------------------------------------------------------------------- */
+.no-scrollbar {
+  scrollbar-width: none;         /* Firefox */
+  -ms-overflow-style: none;      /* old Edge */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;                 /* Chrome, Safari */
+}
