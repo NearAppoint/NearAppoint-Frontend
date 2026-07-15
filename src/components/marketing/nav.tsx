@@ -48,6 +48,7 @@ export function Nav() {
   };
 
   return (
+    <>
     <nav className={cn(
       'sticky top-0 z-50 border-b border-transparent bg-white/85 backdrop-blur-xl transition-colors',
       stuck && 'border-line shadow-sm',
@@ -99,8 +100,9 @@ export function Nav() {
           </button>
         </div>
       </div>
+    </nav>
 
-      <AnimatePresence>
+    <AnimatePresence>
         {open && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
@@ -132,6 +134,6 @@ export function Nav() {
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
+    </>
   );
 }
