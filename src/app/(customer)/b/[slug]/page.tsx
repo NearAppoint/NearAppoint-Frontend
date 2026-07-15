@@ -13,7 +13,10 @@ import { formatAsTyped, digitsOnly, isValidPkMobile } from '@/lib/phone';
 import { auth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 
-interface Svc { id: string; name: string; duration: number; price: number; policy: string }
+interface Svc { id: string; name: string; duration: number; price: number; policy: string; description?: string | null; image?: string | null }
+
+/** Default when a business hasn't added its own service photo yet. */
+const SERVICE_PLACEHOLDER = '/assets/service-placeholder.svg';
 interface Grp { id: string; name: string; services: Svc[] }
 interface Biz {
   id: string; slug: string; name: string; description: string | null;
@@ -208,6 +211,12 @@ export default function BusinessPage() {
                             {on && <Check className="size-3 text-white" strokeWidth={4} />}
                           </span>
 
+                          <img
+                            src={s.image || SERVICE_PLACEHOLDER}
+                            alt=""
+                            className="size-14 flex-none rounded-lg border border-warm-line/60 bg-warm-low object-cover"
+                          />
+
                           <div className="min-w-0 flex-1">
                             <p className="font-display text-[1rem] font-bold text-warm-ink">
                               {s.name}
@@ -222,6 +231,11 @@ export default function BusinessPage() {
                                 </span>
                               )}
                             </p>
+                            {s.description && (
+                              <p className="mt-1 line-clamp-2 text-[0.82rem] leading-relaxed text-warm-muted">
+                                {s.description}
+                              </p>
+                            )}
                           </div>
 
                           {/* REAL PRICES. Not "call for price" — which is exactly
