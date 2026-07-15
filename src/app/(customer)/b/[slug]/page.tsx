@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 interface Svc { id: string; name: string; duration: number; price: number; policy: string; description?: string | null; image?: string | null }
 
 /** Default when a business hasn't added its own service photo yet. */
-const SERVICE_PLACEHOLDER = '/assets/service-placeholder.svg';
+const SERVICE_PLACEHOLDER = '/images/placeholder-service.webp';
 interface Grp { id: string; name: string; services: Svc[] }
 interface Biz {
   id: string; slug: string; name: string; description: string | null;
@@ -199,27 +199,26 @@ export default function BusinessPage() {
                             p.includes(s.id) ? p.filter(x => x !== s.id) : [...p, s.id])}
                           disabled={consult}
                           className={cn(
-                            'flex w-full items-center gap-4 px-6 py-4 text-left transition-colors',
+                            'flex w-full items-start gap-4 px-6 py-4 text-left transition-colors',
                             on ? 'bg-warm-low' : 'hover:bg-warm/60',
                             consult && 'cursor-default opacity-65',
                           )}>
                           <span className={cn(
-                            'grid size-[22px] flex-none place-items-center rounded-md border-2 transition-all',
+                            'mt-0.5 grid size-[22px] flex-none place-items-center rounded-md border-2 transition-all',
                             on ? 'border-brand bg-brand' : 'border-warm-line',
                             consult && 'invisible',
                           )}>
                             {on && <Check className="size-3 text-white" strokeWidth={4} />}
                           </span>
 
-                          <img
-                            src={s.image || SERVICE_PLACEHOLDER}
-                            alt=""
-                            className="size-14 flex-none rounded-lg border border-warm-line/60 bg-warm-low object-cover"
-                          />
-
                           <div className="min-w-0 flex-1">
                             <p className="font-display text-[1rem] font-bold text-warm-ink">
                               {s.name}
+                            </p>
+                            {/* REAL PRICES. Not "call for price" — which is exactly
+                                what our competitors say, and the thing we exist to fix. */}
+                            <p className="mt-0.5 tnum font-mono text-[0.95rem] font-semibold text-warm-ink">
+                              {formatPKR(s.price)}
                             </p>
                             <p className="mt-1 flex flex-wrap items-center gap-2.5 text-[0.84rem] text-warm-muted">
                               <span className="tnum inline-flex items-center gap-1.5">
@@ -238,11 +237,12 @@ export default function BusinessPage() {
                             )}
                           </div>
 
-                          {/* REAL PRICES. Not "call for price" — which is exactly
-                              what our competitors say, and the thing we exist to fix. */}
-                          <span className="tnum flex-none font-mono text-[1rem] font-semibold text-warm-ink">
-                            {formatPKR(s.price)}
-                          </span>
+                          {/* Small square thumbnail on the right — the food-app pattern. */}
+                          <img
+                            src={s.image || SERVICE_PLACEHOLDER}
+                            alt=""
+                            className="size-[92px] flex-none self-center rounded-xl border border-warm-line/60 bg-warm-low object-cover"
+                          />
                         </button>
                       );
                     })}

@@ -1,8 +1,10 @@
 'use client';
 import * as React from 'react';
 import {
-  Plus, Trash2, Sparkles, Clock, Loader2, AlertCircle, FolderPlus, Info,
+  Plus, Trash2, Sparkles, Clock, Loader2, AlertCircle, FolderPlus, Info, ImagePlus,
 } from 'lucide-react';
+import { createBrowserClient } from '@supabase/ssr';
+import { env } from '@/config/env';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -26,8 +28,27 @@ interface Service {
 }
 interface Group { id: string; name: string; display_order: number; services: Service[] }
 
-/** Shown until a business adds its own photo for a service. They can change it. */
-const SERVICE_PLACEHOLDER = '/assets/service-placeholder.svg';
+/** Shown until a business uploads its own photo for a service. They can change it. */
+const SERVICE_PLACEHOLDER = '/images/placeholder-service.webp';
+
+/**
+ * Shrink an image in the browser BEFORE upload. A phone photo is 3–6 MB; a
+ * service thumbnail is shown ~90px wide. Uploading the raw file wastes the
+ * business's data, our storage, and every customer's load time on a slow
+ * connection. We cap the long edge at 700px and re-encode to WebP.
+ */
+async function shrink(file: File, max = 700): Promise<Blob> {
+  const bmp = await createImageBitmap(file);
+  const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const w = Math.round(bmp.width * scale);
+  const h = Math.round(bmp.height * scale);
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  canvas.getContext('2d')!.drawImage(bmp, 0, 0, w, h);
+  return new Promise<Blob>((res, rej) =>
+    canvas.toBlob(b => (b ? res(b) : rej(new Error('encode failed'))), 'image/webp', 0.82),
+  );
+}
 
 export default function ServicesPage() {
   const [groups, setGroups] = React.useState<Group[] | null>(null);
@@ -312,11 +333,43 @@ function NewServiceDialog({ groups, onDone, trigger }: {
   const [price, setPrice] = React.useState('');
   const [description, setDescription] = React.useState('');
   const [imageUrl, setImageUrl] = React.useState('');
+  const [uploading, setUploading] = React.useState(false);
   const [groupId, setGroupId] = React.useState<string>('');
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const real = groups.filter(g => g.id !== 'ungrouped');
+
+  const upload = async (file: File) => {
+    setError(null);
+    setUploading(true);
+    try {
+      const blob = await shrink(file);
+      const supabase = createBrowserClient(
+        env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+      const path = `services/${crypto.randomUUID()}.webp`;
+
+      const { error: upErr } = await supabase.storage
+        .from('business-photos')
+        .upload(path, blob, { cacheControl: '3600', upsert: false, contentType: 'image/webp' });
+
+      if (upErr) {
+        setError(
+          upErr.message.includes('not found')
+            ? 'The "business-photos" storage bucket doesn\u2019t exist yet. Create it in Supabase → Storage.'
+            : upErr.message,
+        );
+        return;
+      }
+
+      setImageUrl(`${env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/business-photos/${path}`);
+    } catch {
+      setError('Could not process that image. Try a different photo.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const create = async () => {
     setError(null);
@@ -420,14 +473,28 @@ function NewServiceDialog({ groups, onDone, trigger }: {
               <img
                 src={imageUrl || SERVICE_PLACEHOLDER}
                 alt=""
-                className="size-14 flex-none rounded-md border border-line2 bg-soft object-cover"
+                className="size-16 flex-none rounded-md border border-line2 bg-soft object-cover"
               />
-              <Input value={imageUrl} placeholder="Paste an image link"
-                onChange={(e) => setImageUrl(e.target.value)} />
+              <div className="min-w-0 flex-1">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-line2 bg-white px-4 py-2.5 font-display text-[0.85rem] font-semibold text-ink transition-colors hover:border-brand">
+                  {uploading
+                    ? <Loader2 className="size-4 animate-spin" />
+                    : <ImagePlus className="size-4" />}
+                  {uploading ? 'Uploading…' : imageUrl ? 'Change photo' : 'Upload photo'}
+                  <input type="file" accept="image/*" className="hidden" disabled={uploading}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); }} />
+                </label>
+                {imageUrl && (
+                  <button type="button" onClick={() => setImageUrl('')}
+                    className="ml-2 font-display text-[0.8rem] font-semibold text-faint transition-colors hover:text-bad">
+                    Remove
+                  </button>
+                )}
+                <p className="mt-1.5 text-[0.76rem] leading-relaxed text-faint">
+                  Leave blank to use the default. Customers see this photo, like on a food-delivery app.
+                </p>
+              </div>
             </div>
-            <p className="mt-1.5 text-[0.76rem] text-faint">
-              Leave blank to use the default. You can change it anytime.
-            </p>
           </div>
 
           {error && (
