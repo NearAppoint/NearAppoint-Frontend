@@ -16,6 +16,8 @@ import { ApiError } from '@/server/lib/errors';
 export interface ServiceRow {
   id: string;
   name: string;
+  description: string | null;
+  image_url: string | null;
   duration_minutes: number;
   buffer_after_minutes: number;
   price: number | null;
@@ -44,7 +46,7 @@ export class CatalogService {
         .eq('business_id', businessId).is('deleted_at', null)
         .order('display_order'),
       sb.from('services')
-        .select('id, name, duration_minutes, buffer_after_minutes, booking_policy, is_bookable_online, group_id, display_order, subcategories(policy_reason)')
+        .select('id, name, description, image_url, duration_minutes, buffer_after_minutes, booking_policy, is_bookable_online, group_id, display_order, subcategories(policy_reason)')
         .eq('business_id', businessId).is('deleted_at', null)
         .order('display_order'),
       sb.from('branch_services')
@@ -59,6 +61,8 @@ export class CatalogService {
     const toRow = (s: Record<string, unknown>): ServiceRow => ({
       id: s.id as string,
       name: s.name as string,
+      description: (s.description as string) ?? null,
+      image_url: (s.image_url as string) ?? null,
       duration_minutes: s.duration_minutes as number,
       buffer_after_minutes: s.buffer_after_minutes as number,
       price: priceOf.get(s.id as string) ?? null,
@@ -121,7 +125,8 @@ export class CatalogService {
     businessId: string,
     branchId: string,
     input: { name: string; groupId: string | null; durationMinutes: number;
-             bufferMinutes: number; price: number },
+             bufferMinutes: number; price: number;
+             description?: string | null; imageUrl?: string | null },
   ): Promise<string> {
     if (!input.name.trim()) throw new ApiError('VALIDATION_FAILED', 'Give the service a name.');
     if (input.durationMinutes < 5 || input.durationMinutes > 480) {
@@ -138,6 +143,8 @@ export class CatalogService {
         category_id: biz!.primary_category_id,
         group_id: input.groupId,
         name: input.name.trim(),
+        description: input.description?.trim() || null,
+        image_url: input.imageUrl?.trim() || null,
         duration_minutes: input.durationMinutes,
         buffer_after_minutes: input.bufferMinutes,
         booking_policy: 'bookable',
@@ -171,7 +178,8 @@ export class CatalogService {
   static async updateService(
     serviceId: string,
     patch: { name?: string; durationMinutes?: number; bufferMinutes?: number;
-             isBookableOnline?: boolean; groupId?: string | null },
+             isBookableOnline?: boolean; groupId?: string | null;
+             description?: string | null; imageUrl?: string | null },
   ): Promise<void> {
     const update: Record<string, unknown> = {};
     if (patch.name !== undefined)             update.name = patch.name.trim();
@@ -179,6 +187,8 @@ export class CatalogService {
     if (patch.bufferMinutes !== undefined)    update.buffer_after_minutes = patch.bufferMinutes;
     if (patch.isBookableOnline !== undefined) update.is_bookable_online = patch.isBookableOnline;
     if (patch.groupId !== undefined)          update.group_id = patch.groupId;
+    if (patch.description !== undefined)      update.description = patch.description?.trim() || null;
+    if (patch.imageUrl !== undefined)         update.image_url = patch.imageUrl?.trim() || null;
 
     if (!Object.keys(update).length) return;
 

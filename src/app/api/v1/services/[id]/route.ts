@@ -40,6 +40,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       bufferMinutes:    body.buffer_minutes,
       isBookableOnline: body.is_bookable_online,
       groupId:          body.group_id,
+      description:      body.description,
+      imageUrl:         body.image_url,
     });
 
     return ok({ id });

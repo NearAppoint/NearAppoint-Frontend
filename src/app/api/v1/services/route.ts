@@ -29,6 +29,8 @@ export async function POST(req: NextRequest) {
       durationMinutes: Number(body.duration_minutes ?? 30),
       bufferMinutes: Number(body.buffer_minutes ?? 0),
       price: Number(body.price ?? 0),
+      description: body.description ?? null,
+      imageUrl: body.image_url ?? null,
     });
 
     return created({ id });

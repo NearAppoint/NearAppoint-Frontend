@@ -15,6 +15,8 @@ import { cn } from '@/lib/utils';
 interface Service {
   id: string;
   name: string;
+  description: string | null;
+  image_url: string | null;
   duration_minutes: number;
   buffer_after_minutes: number;
   price: number | null;
@@ -23,6 +25,9 @@ interface Service {
   is_bookable_online: boolean;
 }
 interface Group { id: string; name: string; display_order: number; services: Service[] }
+
+/** Shown until a business adds its own photo for a service. They can change it. */
+const SERVICE_PLACEHOLDER = '/assets/service-placeholder.svg';
 
 export default function ServicesPage() {
   const [groups, setGroups] = React.useState<Group[] | null>(null);
@@ -184,6 +189,11 @@ function ServiceRow({ service, onDone }: { service: Service; onDone: () => Promi
          still needs her attention, without counting. */
       unpriced && 'bg-brand-tint2/60',
     )}>
+      <img
+        src={service.image_url || SERVICE_PLACEHOLDER}
+        alt=""
+        className="size-12 flex-none rounded-md border border-line2 bg-soft object-cover"
+      />
       <div className="min-w-0 flex-1">
         <p className="font-display text-[0.95rem] font-bold text-ink">{service.name}</p>
         <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.8rem] text-muted">
@@ -201,6 +211,11 @@ function ServiceRow({ service, onDone }: { service: Service; onDone: () => Promi
             </span>
           )}
         </p>
+        {service.description && (
+          <p className="mt-1 line-clamp-2 max-w-[60ch] text-[0.82rem] leading-relaxed text-muted">
+            {service.description}
+          </p>
+        )}
         {consultOnly && service.policy_reason && (
           <p className="mt-1.5 max-w-[52ch] text-[0.76rem] leading-relaxed text-faint">
             {service.policy_reason}
@@ -295,6 +310,8 @@ function NewServiceDialog({ groups, onDone, trigger }: {
   const [duration, setDuration] = React.useState('30');
   const [buffer, setBuffer] = React.useState('0');
   const [price, setPrice] = React.useState('');
+  const [description, setDescription] = React.useState('');
+  const [imageUrl, setImageUrl] = React.useState('');
   const [groupId, setGroupId] = React.useState<string>('');
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -315,6 +332,8 @@ function NewServiceDialog({ groups, onDone, trigger }: {
         duration_minutes: Number(duration) || 30,
         buffer_minutes: Number(buffer) || 0,
         price: Number(price) || 0,
+        description: description || null,
+        image_url: imageUrl || null,
       }),
     });
     const json = await res.json();
@@ -323,6 +342,7 @@ function NewServiceDialog({ groups, onDone, trigger }: {
     if (!res.ok) { setError(json.error?.title ?? 'Could not add it.'); return; }
 
     setName(''); setPrice(''); setDuration('30'); setBuffer('0');
+    setDescription(''); setImageUrl('');
     setOpen(false);
     await onDone();
   };
@@ -377,6 +397,38 @@ function NewServiceDialog({ groups, onDone, trigger }: {
             never sees it. A 45-minute cut with 15 minutes cleanup shows as
             &ldquo;45 min&rdquo; to her, and takes an hour of your chair.
           </p>
+
+          <div>
+            <label className="mb-2 block font-display text-[0.85rem] font-bold">
+              Short description <span className="font-normal text-faint">(optional)</span>
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              maxLength={200}
+              placeholder="A quick line about this service — what&rsquo;s included, what to expect."
+              className="w-full resize-none rounded-sm border border-line2 bg-white px-4 py-3 text-[0.95rem] text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/15"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block font-display text-[0.85rem] font-bold">
+              Photo <span className="font-normal text-faint">(optional)</span>
+            </label>
+            <div className="flex items-center gap-3">
+              <img
+                src={imageUrl || SERVICE_PLACEHOLDER}
+                alt=""
+                className="size-14 flex-none rounded-md border border-line2 bg-soft object-cover"
+              />
+              <Input value={imageUrl} placeholder="Paste an image link"
+                onChange={(e) => setImageUrl(e.target.value)} />
+            </div>
+            <p className="mt-1.5 text-[0.76rem] text-faint">
+              Leave blank to use the default. You can change it anytime.
+            </p>
+          </div>
 
           {error && (
             <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-[0.86rem] text-red-700">
