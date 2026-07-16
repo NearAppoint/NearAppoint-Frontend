@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import {
-  Plus, Trash2, Sparkles, Clock, Loader2, AlertCircle, FolderPlus, Info, ImagePlus,
+  Plus, Trash2, Sparkles, Clock, Loader2, AlertCircle, FolderPlus, Info, ImagePlus, Pencil,
 } from 'lucide-react';
 import { createBrowserClient } from '@supabase/ssr';
 import { env } from '@/config/env';
@@ -90,7 +90,7 @@ export default function ServicesPage() {
         actions={total > 0 ? (
           <>
             <NewGroupDialog onDone={load} />
-            <NewServiceDialog groups={groups} onDone={load} />
+            <ServiceDialog groups={groups} onDone={load} />
           </>
         ) : undefined}
       />
@@ -120,7 +120,7 @@ export default function ServicesPage() {
             <Button size="lg" loading={busy} onClick={() => void seed()}>
               <Sparkles /> Load the usual services
             </Button>
-            <NewServiceDialog groups={[]} onDone={load} trigger={
+            <ServiceDialog groups={[]} onDone={load} trigger={
               <Button size="lg" variant="secondary">Start from scratch</Button>
             } />
           </div>
@@ -271,6 +271,18 @@ function ServiceRow({ service, onDone }: { service: Service; onDone: () => Promi
 
         {saving && <Loader2 className="size-4 animate-spin text-faint" />}
 
+        <ServiceDialog
+          groups={[]}
+          service={service}
+          onDone={onDone}
+          trigger={
+            <button aria-label={`Edit ${service.name}`}
+              className="grid size-9 place-items-center rounded-sm text-faint transition-colors hover:bg-soft hover:text-ink">
+              <Pencil className="size-4" />
+            </button>
+          }
+        />
+
         <button onClick={() => void del()} aria-label={`Delete ${service.name}`}
           className="grid size-9 place-items-center rounded-sm text-faint transition-colors hover:bg-red-50 hover:text-bad">
           <Trash2 className="size-4" />
@@ -323,16 +335,17 @@ function NewGroupDialog({ onDone }: { onDone: () => Promise<void> }) {
 }
 
 /* ----------------------------------------------------------- New service */
-function NewServiceDialog({ groups, onDone, trigger }: {
-  groups: Group[]; onDone: () => Promise<void>; trigger?: React.ReactNode;
+function ServiceDialog({ groups, onDone, trigger, service }: {
+  groups: Group[]; onDone: () => Promise<void>; trigger?: React.ReactNode; service?: Service;
 }) {
+  const isEdit = !!service;
   const [open, setOpen] = React.useState(false);
-  const [name, setName] = React.useState('');
-  const [duration, setDuration] = React.useState('30');
-  const [buffer, setBuffer] = React.useState('0');
-  const [price, setPrice] = React.useState('');
-  const [description, setDescription] = React.useState('');
-  const [imageUrl, setImageUrl] = React.useState('');
+  const [name, setName] = React.useState(service?.name ?? '');
+  const [duration, setDuration] = React.useState(service ? String(service.duration_minutes) : '30');
+  const [buffer, setBuffer] = React.useState(service ? String(service.buffer_after_minutes) : '0');
+  const [price, setPrice] = React.useState(service?.price != null ? String(service.price) : '');
+  const [description, setDescription] = React.useState(service?.description ?? '');
+  const [imageUrl, setImageUrl] = React.useState(service?.image_url ?? '');
   const [uploading, setUploading] = React.useState(false);
   const [groupId, setGroupId] = React.useState<string>('');
   const [busy, setBusy] = React.useState(false);
@@ -371,31 +384,35 @@ function NewServiceDialog({ groups, onDone, trigger }: {
     }
   };
 
-  const create = async () => {
+  const save = async () => {
     setError(null);
     if (!name.trim()) { setError('Give the service a name.'); return; }
 
     setBusy(true);
-    const res = await fetch('/api/v1/services', {
-      method: 'POST',
+    const payload: Record<string, unknown> = {
+      name,
+      duration_minutes: Number(duration) || 30,
+      buffer_minutes: Number(buffer) || 0,
+      price: Number(price) || 0,
+      description: description || null,
+      image_url: imageUrl || null,
+    };
+    if (!isEdit) payload.group_id = groupId || null;
+
+    const res = await fetch(isEdit ? `/api/v1/services/${service!.id}` : '/api/v1/services', {
+      method: isEdit ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        group_id: groupId || null,
-        duration_minutes: Number(duration) || 30,
-        buffer_minutes: Number(buffer) || 0,
-        price: Number(price) || 0,
-        description: description || null,
-        image_url: imageUrl || null,
-      }),
+      body: JSON.stringify(payload),
     });
     const json = await res.json();
     setBusy(false);
 
-    if (!res.ok) { setError(json.error?.title ?? 'Could not add it.'); return; }
+    if (!res.ok) { setError(json.error?.title ?? 'Could not save it.'); return; }
 
-    setName(''); setPrice(''); setDuration('30'); setBuffer('0');
-    setDescription(''); setImageUrl('');
+    if (!isEdit) {
+      setName(''); setPrice(''); setDuration('30'); setBuffer('0');
+      setDescription(''); setImageUrl('');
+    }
     setOpen(false);
     await onDone();
   };
@@ -408,7 +425,7 @@ function NewServiceDialog({ groups, onDone, trigger }: {
         <Button onClick={() => setOpen(true)}><Plus /> Service</Button>
       )}
 
-      <DialogContent title="Add a service">
+      <DialogContent title={isEdit ? 'Edit service' : 'Add a service'}>
         <div className="space-y-4">
           <div>
             <label className="mb-2 block font-display text-[0.85rem] font-bold">Name</label>
@@ -416,7 +433,7 @@ function NewServiceDialog({ groups, onDone, trigger }: {
               onChange={(e) => setName(e.target.value)} />
           </div>
 
-          {real.length > 0 && (
+          {!isEdit && real.length > 0 && (
             <div>
               <label className="mb-2 block font-display text-[0.85rem] font-bold">Group</label>
               <select value={groupId} onChange={(e) => setGroupId(e.target.value)}
@@ -505,7 +522,9 @@ function NewServiceDialog({ groups, onDone, trigger }: {
         </div>
 
         <div className="mt-5 flex gap-2.5">
-          <Button block loading={busy} onClick={() => void create()}>Add service</Button>
+          <Button block loading={busy} onClick={() => void save()}>
+            {isEdit ? 'Save changes' : 'Add service'}
+          </Button>
           <DialogClose asChild><Button variant="secondary">Cancel</Button></DialogClose>
         </div>
       </DialogContent>
