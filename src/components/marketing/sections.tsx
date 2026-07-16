@@ -1,11 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { ArrowRight, Check, Apple, Play, User, Building2 } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { SectionHead } from '@/components/ui/section-head';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Reveal, RevealGroup, RevealItem } from './reveal';
 import { SITE } from '@/config/site';
 import {
   CATEGORIES, STEPS, FEATURES, BUSINESS_FEATURES,
@@ -24,24 +26,24 @@ export function StatsBar() {
 
   return (
     <section className="border-y border-line bg-soft py-10">
-      <div className="container">
+      <Reveal className="container">
         <p className="mb-6 text-center font-display text-[0.68rem] font-bold uppercase tracking-[0.16em] text-faint">
           Trusted Across Pakistan
         </p>
-        <div className="mb-6 grid grid-cols-2 gap-6 text-center md:grid-cols-4">
+        <RevealGroup className="mb-6 grid grid-cols-2 gap-6 text-center md:grid-cols-4">
           {items.map(([n, l]) => (
-            <div key={l}>
+            <RevealItem key={l}>
               <div className="tnum font-display text-[1.6rem] font-extrabold tracking-tight">{n}</div>
               <div className="mt-0.5 text-[0.78rem] text-muted">{l}</div>
-            </div>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
           {SITE.cities.map((c) => (
             <span key={c} className="text-[0.78rem] text-faint">◉ {c}</span>
           ))}
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -51,22 +53,34 @@ export function Categories() {
   return (
     <section id="categories" className="py-[84px]">
       <div className="container">
-        <SectionHead
-          pill="Categories"
-          title="Find Every Service You Need"
-          subtitle="From a fresh cut to bridal mehndi, NearAppoint connects you with vetted businesses across six categories \u2014 with real prices and real availability."
-        />
-        <div className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
+        <Reveal>
+          {/*
+            The dash below is written as a \u2014 escape inside a JS string, NOT
+            as a bare attribute value. A JSX attribute is not a string literal
+            and does no escape processing, so subtitle="... \u2014 ..." shipped
+            those six characters to the page verbatim. Braces make it JS again.
+          */}
+          <SectionHead
+            pill="Categories"
+            title="Find Every Service You Need"
+            subtitle={'From a fresh cut to bridal mehndi, NearAppoint connects you with vetted businesses across six categories \u2014 with real prices and real availability.'}
+          />
+        </Reveal>
+        {/* h-full is threaded through the RevealItem because it, not the Card,
+            is now the grid child. Without it the cards stop matching heights. */}
+        <RevealGroup className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
           {CATEGORIES.map(({ icon: Icon, name, desc }) => (
-            <Card key={name} interactive>
-              <span className="grid size-9 place-items-center rounded-sm bg-brand-tint text-brand">
-                <Icon className="size-[17px]" />
-              </span>
-              <h3 className="mb-1.5 mt-3">{name}</h3>
-              <p className="text-[0.85rem] leading-relaxed text-muted">{desc}</p>
-            </Card>
+            <RevealItem key={name} className="h-full">
+              <Card interactive className="h-full">
+                <span className="grid size-9 place-items-center rounded-sm bg-brand-tint text-brand">
+                  <Icon className="size-[17px]" />
+                </span>
+                <h3 className="mb-1.5 mt-3">{name}</h3>
+                <p className="text-[0.85rem] leading-relaxed text-muted">{desc}</p>
+              </Card>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </div>
     </section>
   );
@@ -77,28 +91,34 @@ export function Steps() {
   return (
     <section className="bg-navy py-[84px]">
       <div className="container">
-        <SectionHead
-          onDark
-          pill="How It Works"
-          title="Three Steps to Your Perfect Appointment"
-          subtitle="We've removed every friction point. From discovery to arrival, the entire journey takes less than 60 seconds."
-        />
-        <div className="grid gap-[18px] lg:grid-cols-3">
+        <Reveal>
+          <SectionHead
+            onDark
+            pill="How It Works"
+            title="Three Steps to Your Perfect Appointment"
+            subtitle="We've removed every friction point. From discovery to arrival, the entire journey takes less than 60 seconds."
+          />
+        </Reveal>
+        {/* Slower stagger than the card grids: three steps read as a sequence,
+            so letting them land 1–2–3 is the point rather than decoration. */}
+        <RevealGroup className="grid gap-[18px] lg:grid-cols-3" stagger={0.1}>
           {STEPS.map(({ n, icon: Icon, title, kicker, desc }) => (
-            <div key={n} className="relative overflow-hidden rounded-lg border border-navy-line bg-navy-soft p-[26px]">
-              <span className="absolute -right-1 top-8 size-2.5 rounded-full bg-brand" />
-              <div className="mb-5 flex items-center justify-between">
-                <span className="font-display text-[2.6rem] font-extrabold leading-none tracking-tighter text-white/10">{n}</span>
-                <span className="grid size-[34px] place-items-center rounded-sm bg-white/[.08] text-white">
-                  <Icon className="size-4" />
-                </span>
+            <RevealItem key={n} className="h-full">
+              <div className="group relative h-full overflow-hidden rounded-lg border border-navy-line bg-navy-soft p-[26px] transition-colors duration-200 hover:border-brand/40">
+                <span className="absolute -right-1 top-8 size-2.5 rounded-full bg-brand" />
+                <div className="mb-5 flex items-center justify-between">
+                  <span className="font-display text-[2.6rem] font-extrabold leading-none tracking-tighter text-white/10 transition-colors duration-200 group-hover:text-white/20">{n}</span>
+                  <span className="grid size-[34px] place-items-center rounded-sm bg-white/[.08] text-white transition-colors duration-200 group-hover:bg-brand">
+                    <Icon className="size-4" />
+                  </span>
+                </div>
+                <h3 className="mb-1 text-lg text-white">{title}</h3>
+                <p className="mb-3 font-display text-[0.8rem] font-bold text-brand">{kicker}</p>
+                <p className="text-[0.87rem] leading-relaxed text-white/55">{desc}</p>
               </div>
-              <h3 className="mb-1 text-lg text-white">{title}</h3>
-              <p className="mb-3 font-display text-[0.8rem] font-bold text-brand">{kicker}</p>
-              <p className="text-[0.87rem] leading-relaxed text-white/55">{desc}</p>
-            </div>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </div>
     </section>
   );
@@ -109,22 +129,28 @@ export function Features() {
   return (
     <section id="features" className="py-[84px]">
       <div className="container">
-        <SectionHead
-          pill="Features"
-          title="Everything You Need to Book Better"
-          subtitle="NearAppoint packs every tool customers need to discover, trust, and book local services without friction."
-        />
-        <div className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
+        <Reveal>
+          <SectionHead
+            pill="Features"
+            title="Everything You Need to Book Better"
+            subtitle="NearAppoint packs every tool customers need to discover, trust, and book local services without friction."
+          />
+        </Reveal>
+        {/* Nine cards. A 0.06s stagger would make the last one land half a second
+            after the first, so this one is tightened. */}
+        <RevealGroup className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-3" stagger={0.04}>
           {FEATURES.map(({ icon: Icon, title, desc }) => (
-            <Card key={title} interactive>
-              <span className="mb-3.5 grid size-9 place-items-center rounded-sm bg-brand-tint text-brand">
-                <Icon className="size-[17px]" />
-              </span>
-              <h3 className="mb-1.5">{title}</h3>
-              <p className="text-[0.85rem] leading-relaxed text-muted">{desc}</p>
-            </Card>
+            <RevealItem key={title} className="h-full">
+              <Card interactive className="group h-full">
+                <span className="mb-3.5 grid size-9 place-items-center rounded-sm bg-brand-tint text-brand transition-colors duration-200 group-hover:bg-brand group-hover:text-white">
+                  <Icon className="size-[17px]" />
+                </span>
+                <h3 className="mb-1.5">{title}</h3>
+                <p className="text-[0.85rem] leading-relaxed text-muted">{desc}</p>
+              </Card>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </div>
     </section>
   );
@@ -135,7 +161,7 @@ export function ForBusiness() {
   return (
     <section id="business" className="bg-gradient-to-b from-[#FFF8F2] to-[#FFFDFB] py-[84px]">
       <div className="container grid items-center gap-14 lg:grid-cols-[1fr_1.05fr]">
-        <div>
+        <Reveal>
           <Pill>For Business Owners</Pill>
           <h2 className="my-[18px]">
             Your Business, Fully<br /><span className="text-brand">Digitized.</span>
@@ -145,30 +171,35 @@ export function ForBusiness() {
             and wellness businesses — handling everything from bookings to payroll reports.
           </p>
 
-          <div className="mb-7 grid gap-5 sm:grid-cols-2">
+          <RevealGroup className="mb-7 grid gap-5 sm:grid-cols-2">
             {BUSINESS_FEATURES.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="flex gap-3">
-                <Icon className="mt-0.5 size-[17px] flex-none text-brand" />
-                <div>
-                  <b className="mb-0.5 block font-display text-[0.88rem] font-bold">{title}</b>
-                  <span className="text-[0.78rem] leading-snug text-muted">{desc}</span>
+              <RevealItem key={title}>
+                <div className="flex gap-3">
+                  <Icon className="mt-0.5 size-[17px] flex-none text-brand" />
+                  <div>
+                    <b className="mb-0.5 block font-display text-[0.88rem] font-bold">{title}</b>
+                    <span className="text-[0.78rem] leading-snug text-muted">{desc}</span>
+                  </div>
                 </div>
-              </div>
+              </RevealItem>
             ))}
-          </div>
+          </RevealGroup>
 
-          <Button asChild size="lg">
+          <Button asChild size="lg" className="cursor-pointer">
             <Link href="/signup">Register Your Business <ArrowRight /></Link>
           </Button>
-        </div>
+        </Reveal>
 
-        <DashboardMock />
+        <Reveal delay={0.08}>
+          <DashboardMock />
+        </Reveal>
       </div>
     </section>
   );
 }
 
 function DashboardMock() {
+  const reduced = useReducedMotion();
   const appts = [
     { t: '11:00 AM', n: 'Fatima K.', s: 'Hair Color · Nadia', st: 'Confirmed' },
     { t: '12:30 PM', n: 'Sana R.', s: 'Facial · Ayesha', st: 'Confirmed' },
@@ -217,8 +248,22 @@ function DashboardMock() {
       <p className="mb-2 mt-4 font-display text-[0.66rem] font-bold text-white/55">Weekly Revenue</p>
       <div className="flex h-14 items-end gap-1.5">
         {bars.map((h, i) => (
-          <div key={i} style={{ height: `${h}%` }}
-            className={`flex-1 rounded-t ${h === 100 ? 'bg-brand' : 'bg-[#3D4E6B]'}`} />
+          <motion.div
+            key={i}
+            style={{ height: `${h}%`, transformOrigin: 'bottom' }}
+            className={`flex-1 rounded-t ${h === 100 ? 'bg-brand' : 'bg-[#3D4E6B]'}`}
+            // height stays fixed and scaleY does the growing: animating the real
+            // height would re-lay-out the flex row seven times a frame. The bars
+            // occupy their final space from the start, so nothing below moves.
+            initial={{ scaleY: 0 }}
+            whileInView={{ scaleY: 1 }}
+            viewport={{ once: true, margin: '0px 0px -40px 0px' }}
+            transition={{
+              duration: reduced ? 0 : 0.45,
+              delay: reduced ? 0 : 0.15 + i * 0.05,
+              ease: [0.2, 0.8, 0.2, 1],
+            }}
+          />
         ))}
       </div>
       <div className="mt-1 flex gap-1.5">
@@ -242,25 +287,31 @@ export function MobileApp() {
   return (
     <section className="bg-navy py-[84px]">
       <div className="container">
-        <SectionHead
-          onDark
-          pill="Mobile App"
-          title="Your City's Services, In Your Pocket"
-          subtitle="Available on iOS and Android. Download once, book forever — with offline support, smart reminders, and a beautiful interface."
-        />
-        <div className="mb-11 flex flex-wrap justify-center gap-3">
+        <Reveal>
+          <SectionHead
+            onDark
+            pill="Mobile App"
+            title="Your City's Services, In Your Pocket"
+            subtitle="Available on iOS and Android. Download once, book forever — with offline support, smart reminders, and a beautiful interface."
+          />
+        </Reveal>
+        <RevealGroup className="mb-11 flex flex-wrap justify-center gap-3">
           {STORES.map(({ icon: Icon, small, big }) => (
-            <a key={big} href="#"
-              className="inline-flex items-center gap-2.5 rounded-sm border border-navy-line bg-navy-soft px-[18px] py-2.5 text-white transition-colors hover:border-white/30">
-              <Icon className="size-[19px]" />
-              <span>
-                <small className="block text-[0.56rem] leading-tight text-white/50">{small}</small>
-                <b className="block font-display text-[0.84rem] font-bold leading-tight">{big}</b>
-              </span>
-            </a>
+            <RevealItem key={big}>
+              <a href="#"
+                className="inline-flex cursor-pointer items-center gap-2.5 rounded-sm border border-navy-line bg-navy-soft px-[18px] py-2.5 text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30">
+                <Icon className="size-[19px]" />
+                <span>
+                  <small className="block text-[0.56rem] leading-tight text-white/50">{small}</small>
+                  <b className="block font-display text-[0.84rem] font-bold leading-tight">{big}</b>
+                </span>
+              </a>
+            </RevealItem>
           ))}
-        </div>
-        <TrioMock />
+        </RevealGroup>
+        <Reveal>
+          <TrioMock />
+        </Reveal>
       </div>
     </section>
   );
@@ -318,28 +369,34 @@ export function Benefits() {
   return (
     <section id="benefits" className="bg-soft py-[84px]">
       <div className="container">
-        <SectionHead
-          pill="Benefits"
-          title="Built for Everyone"
-          subtitle="Whether you're booking your next haircut or managing a bustling salon, NearAppoint has the tools you need."
-        />
-        <div className="grid gap-5 lg:grid-cols-2">
-          <BenefitCard
-            icon={<User className="size-[17px]" />}
-            title="For Customers"
-            sub="Discover and book local services with zero friction."
-            items={CUSTOMER_BENEFITS}
-            cta="Start Booking"
+        <Reveal>
+          <SectionHead
+            pill="Benefits"
+            title="Built for Everyone"
+            subtitle="Whether you're booking your next haircut or managing a bustling salon, NearAppoint has the tools you need."
           />
-          <BenefitCard
-            dark
-            icon={<Building2 className="size-[17px]" />}
-            title="For Businesses"
-            sub="Run your entire business from a single, powerful platform."
-            items={BUSINESS_BENEFITS}
-            cta="Register Business"
-          />
-        </div>
+        </Reveal>
+        <RevealGroup className="grid gap-5 lg:grid-cols-2" stagger={0.1}>
+          <RevealItem className="h-full">
+            <BenefitCard
+              icon={<User className="size-[17px]" />}
+              title="For Customers"
+              sub="Discover and book local services with zero friction."
+              items={CUSTOMER_BENEFITS}
+              cta="Start Booking"
+            />
+          </RevealItem>
+          <RevealItem className="h-full">
+            <BenefitCard
+              dark
+              icon={<Building2 className="size-[17px]" />}
+              title="For Businesses"
+              sub="Run your entire business from a single, powerful platform."
+              items={BUSINESS_BENEFITS}
+              cta="Register Business"
+            />
+          </RevealItem>
+        </RevealGroup>
       </div>
     </section>
   );
@@ -349,7 +406,7 @@ function BenefitCard({ dark, icon, title, sub, items, cta }: {
   dark?: boolean; icon: React.ReactNode; title: string; sub: string; items: readonly string[]; cta: string;
 }) {
   return (
-    <div className={`rounded-lg p-[30px] ${dark ? 'bg-navy' : 'border border-line bg-white'}`}>
+    <div className={`h-full rounded-lg p-[30px] ${dark ? 'bg-navy' : 'border border-line bg-white'}`}>
       <span className={`grid size-9 place-items-center rounded-sm ${dark ? 'bg-brand/20' : 'bg-brand-tint'} text-brand`}>
         {icon}
       </span>
@@ -363,7 +420,7 @@ function BenefitCard({ dark, icon, title, sub, items, cta }: {
           </li>
         ))}
       </ul>
-      <Button asChild><Link href="/signup">{cta} <ArrowRight /></Link></Button>
+      <Button asChild className="cursor-pointer"><Link href="/signup">{cta} <ArrowRight /></Link></Button>
     </div>
   );
 }
@@ -380,19 +437,19 @@ export function NavyStats() {
 
   return (
     <section className="bg-navy py-[66px]">
-      <div className="container">
+      <Reveal className="container">
         <p className="mb-7 text-center font-display text-[0.68rem] font-bold uppercase tracking-[0.16em] text-white/40">
           The Numbers Tell the Story
         </p>
-        <div className="grid grid-cols-2 gap-8 text-center md:grid-cols-4">
+        <RevealGroup className="grid grid-cols-2 gap-8 text-center md:grid-cols-4">
           {items.map(([n, l]) => (
-            <div key={l}>
+            <RevealItem key={l}>
               <div className="tnum font-display text-[2rem] font-extrabold tracking-tight text-brand">{n}</div>
               <div className="mt-1 text-[0.78rem] text-white/50">{l}</div>
-            </div>
+            </RevealItem>
           ))}
-        </div>
-      </div>
+        </RevealGroup>
+      </Reveal>
     </section>
   );
 }
@@ -403,34 +460,38 @@ export function Testimonials() {
   return (
     <section className="py-[84px]">
       <div className="container">
-        <SectionHead
-          pill="Testimonials"
-          title="Loved by Customers & Businesses"
-          subtitle="Real stories from the people building and using NearAppoint every day."
-        />
-        <div className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
+        <Reveal>
+          <SectionHead
+            pill="Testimonials"
+            title="Loved by Customers & Businesses"
+            subtitle="Real stories from the people building and using NearAppoint every day."
+          />
+        </Reveal>
+        <RevealGroup className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
           {TESTIMONIALS.map((t) => (
-            <Card key={t.name} interactive>
-              <div className="mb-3 tracking-widest text-brand" aria-hidden>★★★★★</div>
-              <p className="mb-4 text-[0.87rem] leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
-              <div className="flex items-center gap-2.5 border-t border-line pt-3.5">
-                <span style={{ background: t.color }}
-                  className="grid size-[30px] flex-none place-items-center rounded-full font-display text-[0.62rem] font-bold text-white">
-                  {t.name.split(' ').map((w) => w[0]).join('')}
-                </span>
-                <div>
-                  <b className="block font-display text-[0.8rem] font-bold">{t.name}</b>
-                  <small className="text-[0.68rem] text-faint">
-                    {t.role}
-                    <span className={`ml-1.5 rounded px-1.5 py-0.5 font-display text-[0.55rem] font-bold ${
-                      t.badge === 'Customer' ? 'bg-brand-tint text-brand' : 'bg-[#E8EDF5] text-navy'
-                    }`}>{t.badge}</span>
-                  </small>
+            <RevealItem key={t.name} className="h-full">
+              <Card interactive className="h-full">
+                <div className="mb-3 tracking-widest text-brand" aria-hidden>★★★★★</div>
+                <p className="mb-4 text-[0.87rem] leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
+                <div className="flex items-center gap-2.5 border-t border-line pt-3.5">
+                  <span style={{ background: t.color }}
+                    className="grid size-[30px] flex-none place-items-center rounded-full font-display text-[0.62rem] font-bold text-white">
+                    {t.name.split(' ').map((w) => w[0]).join('')}
+                  </span>
+                  <div>
+                    <b className="block font-display text-[0.8rem] font-bold">{t.name}</b>
+                    <small className="text-[0.68rem] text-faint">
+                      {t.role}
+                      <span className={`ml-1.5 rounded px-1.5 py-0.5 font-display text-[0.55rem] font-bold ${
+                        t.badge === 'Customer' ? 'bg-brand-tint text-brand' : 'bg-[#E8EDF5] text-navy'
+                      }`}>{t.badge}</span>
+                    </small>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </div>
     </section>
   );
@@ -441,19 +502,26 @@ export function Faq() {
   return (
     <section id="faq" className="bg-soft py-[84px]">
       <div className="container">
-        <SectionHead
-          pill="FAQ"
-          title="Frequently Asked Questions"
-          subtitle="Everything you need to know about NearAppoint. Can't find an answer? Contact our team."
-        />
-        <Accordion type="single" collapsible className="mx-auto flex max-w-[720px] flex-col gap-2.5">
-          {FAQS.map((f, i) => (
-            <AccordionItem key={f.q} value={`q${i}`}>
-              <AccordionTrigger>{f.q}</AccordionTrigger>
-              <AccordionContent>{f.a}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+        <Reveal>
+          <SectionHead
+            pill="FAQ"
+            title="Frequently Asked Questions"
+            subtitle="Everything you need to know about NearAppoint. Can't find an answer? Contact our team."
+          />
+        </Reveal>
+        {/* The accordion animates its own open/close (tailwindcss-animate, via the
+            Radix height var). Revealing each row individually would fight that,
+            so the whole block comes in as one. */}
+        <Reveal>
+          <Accordion type="single" collapsible className="mx-auto flex max-w-[720px] flex-col gap-2.5">
+            {FAQS.map((f, i) => (
+              <AccordionItem key={f.q} value={`q${i}`}>
+                <AccordionTrigger>{f.q}</AccordionTrigger>
+                <AccordionContent>{f.a}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </Reveal>
       </div>
     </section>
   );
@@ -467,7 +535,7 @@ export function FinalCta() {
         className="pointer-events-none absolute -top-36 left-1/2 h-[420px] w-[700px] -translate-x-1/2"
         style={{ background: 'radial-gradient(ellipse, rgba(249,115,22,.20), transparent 66%)' }}
       />
-      <div className="container relative">
+      <Reveal className="container relative">
         <Pill onDark>Get Started Today</Pill>
         <h2 className="my-5 text-[clamp(2.2rem,4.4vw,3.2rem)] text-white">
           Find. Book. <span className="text-brand">Arrive.</span>
@@ -476,8 +544,8 @@ export function FinalCta() {
           Join customers and businesses across Pakistan using NearAppoint to save time and grow faster.
         </p>
         <div className="mb-8 flex flex-wrap justify-center gap-3">
-          <Button asChild size="lg"><Link href="/signup">Download the App</Link></Button>
-          <Button asChild size="lg" variant="outlineLight"><Link href="/signup">Register Your Business</Link></Button>
+          <Button asChild size="lg" className="cursor-pointer"><Link href="/signup">Download the App</Link></Button>
+          <Button asChild size="lg" variant="outlineLight" className="cursor-pointer"><Link href="/signup">Register Your Business</Link></Button>
         </div>
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
           {['Free to download', 'No credit card required', 'Cancel anytime'].map((t) => (
@@ -486,7 +554,7 @@ export function FinalCta() {
             </span>
           ))}
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }

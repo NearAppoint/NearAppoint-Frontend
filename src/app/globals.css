@@ -14,6 +14,53 @@
 @layer utilities {
   /* Numbers that must line up: times, prices, phone numbers. */
   .tnum { font-variant-numeric: tabular-nums; }
+
+  /* -------------------------------------------------------------------------
+     Warm aurora. The soft light behind the hero.
+
+     Gradients live here rather than in the component because a radial-gradient
+     needs rgba() stops, and there is no Tailwind token that expresses "brand
+     orange at 12% alpha". The alternative is a hex code in a .tsx file, which
+     is how screen #30 stops matching screen #1. So: the colours stay in the
+     design layer, the component just names the effect.
+
+     Warm only — brand orange and the warm palette. No purple, no blue, no
+     "AI gradient". This is a salon, not a crypto exchange.
+
+     Layers paint top-down in source order, so the white wash is listed first:
+     it settles the whole thing back to #FFF at the bottom edge, where the hero
+     meets a white section. Without it the warm base ends in a visible seam.
+     ------------------------------------------------------------------------- */
+  .aurora-warm {
+    background-image:
+      linear-gradient(to bottom, rgba(255, 255, 255, 0) 56%, #FFFFFF 100%),
+      radial-gradient(58% 62% at 82% 4%,  rgba(249, 115, 22, .13), transparent 64%),
+      radial-gradient(48% 55% at 6%  96%, rgba(252, 227, 217, .55), transparent 62%),
+      radial-gradient(90% 88% at 50% 0%,  rgba(255, 241, 235, .85), transparent 70%);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Reduced motion — the global backstop.
+
+   framer-motion components handle this themselves via useReducedMotion(), but
+   CSS-driven animation (animate-bob, animate-pulse, and every `transition-*`
+   hover) has no idea the preference exists. Without this block a user who has
+   asked the OS to stop moving things still gets a bobbing card and a pulsing
+   dot forever.
+
+   Near-zero rather than `none`: keeping a 0.01ms duration means transitionend
+   and animationend still fire, so any JS waiting on them doesn't hang.
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 
