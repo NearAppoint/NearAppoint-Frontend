@@ -19,8 +19,8 @@ export const SITE = {
   tagline: 'Find. Book. Arrive.',
   url: 'https://www.nearappoint.com',
 
-  showStats: true,
-  showTestimonials: true,
+  showStats: false,
+  showTestimonials: false,
 
   stats: {
     businesses:   '2,400+',
